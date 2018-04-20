@@ -1,0 +1,35 @@
+.landing__container {
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  color: white;
+
+  .heading__wrapper {
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-evenly;
+    text-align: center;
+  }
+
+  .form__wrapper {
+    width: 40rem;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-around;
+    text-align: center;
+  }
+
+  .form__input {
+    margin-bottom: 0.5rem;
+  }
+
+  .submit__button {
+    width: 8rem;
+    margin-bottom: 1rem;
+  }
+}
