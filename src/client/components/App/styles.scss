@@ -1,0 +1,12 @@
+.app {
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow-y: scroll;
+  background-color: #000;
+  background: url('http://imageshack.com/a/img923/4467/GEWqeQ.jpg');
+  background-position: center;
+  background-size: cover;
+}
