@@ -6,7 +6,7 @@ var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+// var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 var path = require('path');
 var qs = require('qs');
 var autoprefixer = require('autoprefixer');
@@ -139,6 +139,5 @@ module.exports = {
       filename: INDEX_NAME,
       template: TEMPLATE,
     }),
-    new UglifyJsPlugin(),
   ],
 };
