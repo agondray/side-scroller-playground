@@ -1,24 +1,27 @@
 import React, { Component } from 'react';
 
+import PlayerCharacter from '@entities/player_character';
 import style from './styles.scss';
 
-// #here - HOOK UP TO REDUX!!!
+const playerSprite = require('@images/swordsman.png');
 
-const setObjectKey = (obj, key) => {
-  const target = obj;
-  target[key] = {
-    pressed: true,
-    code: key,
-  };
+// #here - helpers / HOOK UP TO REDUX!!!
 
-  return target;
-};
-
-const removeObjectKey = (obj, key) => {
-  const target = obj;
-  delete target[key];
-  return target;
-};
+// const setObjectKey = (obj, key) => {
+//   const target = obj;
+//   target[key] = {
+//     pressed: true,
+//     code: key,
+//   };
+//
+//   return target;
+// };
+//
+// const removeObjectKey = (obj, key) => {
+//   const target = obj;
+//   delete target[key];
+//   return target;
+// };
 
 class Stage extends Component {
   constructor(props) {
@@ -27,66 +30,107 @@ class Stage extends Component {
     this.state = {
       // set in redux prosp
       activeKeys: {},
+      // put keys in constants or store
       allowedKeys: {
         left: 65,
         right: 68,
-        jupm: 32,
+        jump: 32,
       },
       autoUpdateX: null,
       player: null,
+      playerX: null,
       playerStyles: null,
+      context: null,
+      stage: {
+        width: 800,
+        height: 600,
+      },
     };
 
-    this.definePlayerNode = this.definePlayerNode.bind(this);
-    this.handleKeyDown = this.handleKeyDown.bind(this);
-    this.handleKeyUp = this.handleKeyUp.bind(this);
-    // this.move = this.move.bind(this);
+    this.setContext = this.setContext.bind(this);
+    this.initializeContextValues = this.initializeContextValues.bind(this);
+    this.initializePlayerCharacter = this.initializePlayerCharacter.bind(this);
   }
 
   componentDidMount() {
-    this.definePlayerNode();
+    const { canvas } = this;
+    const context = canvas.getContext('2d');
+    this.setContext({ context });
   }
 
-  definePlayerNode() {
-    const player = document.getElementById('pc');
-    const playerStyles = window.getComputedStyle(player);
-
-    this.setState({ player, playerStyles });
-  }
-
-  // move({ direction, playerStyles }) {
-  //   console.log('moving...');
-    // let currentX = parseInt(playerStyles.left.substring(0, player));
-
-  // }
-
-  handleKeyDown(e) {
-    const { keyCode } = e;
-    const { allowedKeys, activeKeys } = this.state;
-    this.setState({
-      activeKeys: setObjectKey(activeKeys, keyCode),
+  setContext({ context }) {
+    this.setState({ context }, () => {
+      this.initializeContextValues();
+      this.initializePlayerCharacter();
     });
   }
 
-  handleKeyUp(e) {
-    const { keyCode } = e;
-    const { allowedKeys, activeKeys } = this.state;
-    this.setState({
-      activeKeys: removeObjectKey(activeKeys, keyCode),
-    }, () => {debugger});
+  initializeContextValues() {
+    const { context, stage: { width, height } } = this.state;
+    context.fillStyle = '#aaa';
+    context.fillRect(0, 0, width, height);
   }
 
+  initializePlayerCharacter() {
+    const player = new PlayerCharacter();
+    player.createSprite(this.state.context, playerSprite);
+    player.render(this.state.context);
+  }
+
+  // ==========================
+
+  // move(dir) {
+  //   const { playerX, playerStyles } = this.state;
+  //   const delta = 10;
+  //   let x = playerX;
+  //
+  //   if (dir === 'right') {
+  //     this.setState({ playerX: `${x += delta}px` });
+  //   }
+  // }
+  //
+  // updatePlayerPosition() {
+  //   const { activeKeys, allowedKeys: { left, right, jump } } = this.state;
+  //   if (activeKeys[left]) {
+  //     this.move('left');
+  //   }
+  //
+  //   if (activeKeys[right]) {
+  //     this.move('right');
+  //   }
+  //
+  //   if (activeKeys[jump]) {
+  //     this.move('jump');
+  //   }
+  // }
+  //
+  // handleKeyDown(e) {
+  //   const { keyCode } = e;
+  //   const { activeKeys } = this.state;
+  //   this.setState({
+  //     activeKeys: setObjectKey(activeKeys, keyCode),
+  //   }, () => {
+  //     this.updatePlayerPosition();
+  //   });
+  // }
+  //
+  // handleKeyUp(e) {
+  //   const { keyCode } = e;
+  //   const { activeKeys } = this.state;
+  //   this.setState({
+  //     activeKeys: removeObjectKey(activeKeys, keyCode),
+  //   });
+  // }
+
   render() {
-    // tabIndex="0" onKeyDown={this.foo}
+    const { stage: { width, height } } = this.state
     return (
-      <div
-        role="textbox"
-        className={style.stage}
-        tabIndex="0"
-        onKeyDown={this.handleKeyDown}
-        onKeyUp={this.handleKeyUp}
-      >
-        <div id="pc" className={style.player} />
+      <div>
+        <canvas
+          ref={(canvas) => { this.canvas = canvas; }}
+          width={width}
+          height={height}
+        />
       </div>
     );
   }

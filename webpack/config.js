@@ -6,7 +6,6 @@ var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-// var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 var path = require('path');
 var qs = require('qs');
 var autoprefixer = require('autoprefixer');
@@ -96,6 +95,11 @@ module.exports = {
     ],
   },
   resolve: {
+    alias: {
+      '@images': path.resolve(path.join(__dirname, '../src/client/assets/images')),
+      '@components': path.resolve(path.join(__dirname, '../src/client/components')),
+      '@entities': path.resolve(path.join(__dirname, '../src/client/engine/entities')),
+    },
     extensions: ['.js', '.jsx', '.scss'],
   },
   devServer: {
