@@ -1,8 +1,8 @@
 import React from 'react';
 import { Route, IndexRoute, browserHistory} from 'react-router';
 // containers
-import App from './components/App/';
-import Hub from './components/Hub/';
+import App from './components/app/';
+import Hub from './components/hub/';
 
 // components
 
