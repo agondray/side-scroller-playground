@@ -96,9 +96,11 @@ module.exports = {
   },
   resolve: {
     alias: {
-      '@images': path.resolve(path.join(__dirname, '../src/client/assets/images')),
       '@components': path.resolve(path.join(__dirname, '../src/client/components')),
       '@entities': path.resolve(path.join(__dirname, '../src/client/engine/entities')),
+      '@dux': path.resolve(path.join(__dirname, '../src/client/dux')),
+      '@images': path.resolve(path.join(__dirname, '../src/client/assets/images')),
+      '@utils': path.resolve(path.join(__dirname, '../src/client/utils')),
     },
     extensions: ['.js', '.jsx', '.scss'],
   },

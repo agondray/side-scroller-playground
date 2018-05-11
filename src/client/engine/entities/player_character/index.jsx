@@ -6,8 +6,8 @@ export default class PlayerCharacter {
         y: position ? position.y : 100,
       },
       velocity: {
-        x: 1,
-        y: 1,
+        x: 5,
+        y: 5,
       },
       avatar: avatar || null, // #here - avatar must be required || throw error
     };
@@ -17,10 +17,10 @@ export default class PlayerCharacter {
     const { position, velocity } = this.attributes;
     switch (direction) {
       case 'up':
-        position.y += velocity.y;
+        position.y -= velocity.y;
         break;
       case 'down':
-        position.y -= velocity.y;
+        position.y += velocity.y;
         break;
       case 'right':
         position.x += velocity.x;

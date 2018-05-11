@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
-import main from './main/main';
+import playerCharacterReducer from './dux/player_character';
 
 const rootReducer = combineReducers({
-  main: main,
+  playerCharacter: playerCharacterReducer,
 });
 
 export default rootReducer;

@@ -3,20 +3,15 @@ import { render } from 'react-dom';
 import { Router, browserHistory } from 'react-router';
 import { createStore, applyMiddleware, compose } from 'redux';
 import { Provider } from 'react-redux';
-import promiseMiddleware from 'redux-promise-middleware';
-import createLogger from 'redux-logger';
-import ReduxThunk from 'redux-thunk';
+// import promiseMiddleware from 'redux-promise-middleware';
+// import createLogger from 'redux-logger';
+import thunk from 'redux-thunk';
 
 import Routes from './routes.jsx';
-import reducer from './reducers';
+import reducer from './store';
 
-const logger = createLogger();
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-// let storeWithMiddleware = createStore(reducer, composeEnhancers(
-//   applyMiddleware(promiseMiddleware(), logger, ReduxThunk)
-// ));
-
-const storeWithMiddleware = createStore(reducer, applyMiddleware(promiseMiddleware, logger, ReduxThunk));
+const storeWithMiddleware = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
 
 window.store = storeWithMiddleware;
 
