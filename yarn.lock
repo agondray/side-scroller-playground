@@ -2717,10 +2717,6 @@ decompress-response@^3.2.0, decompress-response@^3.3.0:
   dependencies:
     mimic-response "^1.0.0"
 
-deep-diff@0.3.4:
-  version "0.3.4"
-  resolved "https://registry.npmjs.org/deep-diff/-/deep-diff-0.3.4.tgz#aac5c39952236abe5f037a2349060ba01b00ae48"
-
 deep-equal@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/deep-equal/-/deep-equal-1.0.1.tgz#f5d260292b660e084eff4cdbc9f08ad3247448b5"
@@ -4620,6 +4616,12 @@ image-size@^0.5.0:
   version "0.5.5"
   resolved "https://registry.npmjs.org/image-size/-/image-size-0.5.5.tgz#09dfd4ab9d20e29eb1c3e80b8990378df9e3cb9c"
 
+immutability-helper@^2.7.0:
+  version "2.7.0"
+  resolved "https://registry.npmjs.org/immutability-helper/-/immutability-helper-2.7.0.tgz#4ea9916cc8f45142ec3e3f0fce75fa5d66fa1b38"
+  dependencies:
+    invariant "^2.2.0"
+
 immutable@^3.8.1:
   version "3.8.2"
   resolved "https://registry.npmjs.org/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
@@ -4748,7 +4750,7 @@ into-stream@^3.1.0:
     from2 "^2.1.1"
     p-is-promise "^1.1.0"
 
-invariant@^2.0.0, invariant@^2.2.1, invariant@^2.2.2:
+invariant@^2.0.0, invariant@^2.2.0, invariant@^2.2.1, invariant@^2.2.2:
   version "2.2.4"
   resolved "https://registry.npmjs.org/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   dependencies:
@@ -7735,20 +7737,6 @@ redux-devtools@^3.4.1:
     lodash "^4.2.0"
     prop-types "^15.5.7"
     redux-devtools-instrument "^1.0.1"
-
-redux-logger@^2.8.1:
-  version "2.10.2"
-  resolved "https://registry.npmjs.org/redux-logger/-/redux-logger-2.10.2.tgz#3c5a5f0a6f32577c1deadf6655f257f82c6c3937"
-  dependencies:
-    deep-diff "0.3.4"
-
-"redux-promise-middleware@https://registry.npmjs.org/redux-promise-middleware/-/redux-promise-middleware-4.3.0.tgz":
-  version "4.3.0"
-  resolved "https://registry.npmjs.org/redux-promise-middleware/-/redux-promise-middleware-4.3.0.tgz#38997574b6f150ab8ff1aa72ca5563fbc82c7cef"
-
-redux-promise-reducer@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/redux-promise-reducer/-/redux-promise-reducer-1.0.1.tgz#f5797a3c76d7f72fe389e0c53fb53e70f9dcbcf7"
 
 redux-thunk@^2.2.0:
   version "2.2.0"

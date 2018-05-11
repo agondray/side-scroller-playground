@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "git@github.com:jvestolas/side-scroller-playground.git",
   "scripts": {
-    "start": "node_modules/.bin/webpack-dev-server --port 1337 --config ./webpack/config.js",
+    "start": "node_modules/.bin/webpack-dev-server --port 1337 --config ./webpack/config.js --env development",
     "storybook": "start-storybook -p 9001 -c .storybook",
     "build": "rm -rf build && rm -rf dist && webpack --config webpack/config.js --env development",
     "clean": "rm -rf build && rm -rf dist"
@@ -49,6 +49,7 @@
     "css-loader": "^0.28.11",
     "extract-text-webpack-plugin": "next",
     "html-webpack-plugin": "^3.2.0",
+    "immutability-helper": "^2.7.0",
     "jsx-loader": "^0.13.2",
     "material-ui": "^0.17.0",
     "node-sass": "^4.8.3",
@@ -64,9 +65,6 @@
     "react-tap-event-plugin": "^2.0.1",
     "redux": "^3.6.0",
     "redux-actions": "^2.2.1",
-    "redux-logger": "^2.8.1",
-    "redux-promise-middleware": "https://registry.npmjs.org/redux-promise-middleware/-/redux-promise-middleware-4.3.0.tgz",
-    "redux-promise-reducer": "^1.0.1",
     "redux-thunk": "^2.2.0",
     "sass-loader": "^7.0.1",
     "style-loader": "^0.13.2",

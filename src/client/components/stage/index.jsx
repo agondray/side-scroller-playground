@@ -1,51 +1,21 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import PlayerCharacter from '@entities/player_character';
-import style from './styles.scss';
+import { addActiveKey, removeActiveKey } from '@dux/player_character';
+import { allowedKeys } from '@utils/key_codes';
+import { assignKey, removeKey } from '@utils/keypress_handlers';
+import { createPlayerAvatar } from '@utils/avatar_helpers';
+import styles from './styles.scss';
 
 const playerSprite = require('@images/swordsman.png');
-
-// #here - helpers / HOOK UP TO REDUX!!!
-
-// ===============================
-// move to helper file
-const assignKeyDown = (obj, keyCode) => {
-  const target = obj;
-  target[keyCode] = {
-    pressed: true,
-    code: keyCode,
-  };
-
-  return target;
-};
-
-const removeObjectKey = (obj, keyCode) => {
-  const target = obj;
-  delete target[keyCode];
-  return target;
-};
-
-const createPlayerAvatar = (imgSrc) => {
-  const sprite = new Image();
-  sprite.src = imgSrc;
-  //  #here - no onload since image is drawn on update();
-  return sprite;
-};
-// ===============================
 
 class Stage extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      // set in redux prosp
-      // put keys in constants or store
-      activeKeys: {},
-      allowedKeys: {
-        left: 65,
-        right: 68,
-        jump: 32,
-      },
       animation: null,
       autoUpdateX: null,
       gameStarted: false,
@@ -107,7 +77,6 @@ class Stage extends Component {
   // ==========================
 
   update() {
-    console.log('updating game state');
     const { context, player } = this.state;
 
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -121,7 +90,10 @@ class Stage extends Component {
   }
 
   updatePlayerPosition() {
-    const { player, activeKeys, allowedKeys: { left, right, jump } } = this.state;
+    const { player } = this.state;
+    const { activeKeys } = this.props;
+    const { left, right, up, down } = allowedKeys;
+
     if (activeKeys[left]) {
       player.move('left');
     }
@@ -129,23 +101,31 @@ class Stage extends Component {
     if (activeKeys[right]) {
       player.move('right');
     }
+
+    if (activeKeys[up]) {
+      player.move('up');
+    }
+
+    if (activeKeys[down]) {
+      player.move('down');
+    }
   }
 
-  // DRY THESE UP!//
+  // #here - DRY THESE UP!//
   handleKeyDown(e) {
     const { keyCode } = e;
-    const { activeKeys } = this.state;
-    this.setState({
-      activeKeys: assignKeyDown(activeKeys, keyCode),
-    });
+    const { activeKeys, dispatch } = this.props;
+    const activeKey = assignKey(activeKeys, keyCode);
+
+    dispatch(addActiveKey(activeKey));
   }
   //
   handleKeyUp(e) {
     const { keyCode } = e;
-    const { activeKeys } = this.state;
-    this.setState({
-      activeKeys: removeObjectKey(activeKeys, keyCode),
-    });
+    const { activeKeys, dispatch } = this.props;
+    const activeKey = removeKey(activeKeys, keyCode);
+
+    dispatch(removeActiveKey(activeKey));
   }
 
   handleAnimationFrameStop() {
@@ -155,6 +135,7 @@ class Stage extends Component {
 
   render() {
     const { stage: { width, height } } = this.state;
+
     return (
       <div>
         <button onClick={this.handleAnimationFrameStop}>stop animation frame</button>
@@ -171,4 +152,18 @@ class Stage extends Component {
   }
 }
 
-export default Stage;
+const activeKeysShape = {
+  pressed: PropTypes.bool,
+  code: PropTypes.string,
+};
+
+Stage.propTypes = {
+  dispatch: PropTypes.func.isRequired,
+  activeKeys: PropTypes.shape(PropTypes.objectOf(activeKeysShape)).isRequired,
+};
+
+const state = ({ playerCharacter: { activeKeys } }) => ({
+  activeKeys,
+});
+
+export default connect(state)(Stage);
