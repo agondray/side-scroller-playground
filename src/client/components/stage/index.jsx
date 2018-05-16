@@ -3,12 +3,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import PlayerCharacter from '@entities/player_character';
+import Overworld from '@engines/overworld';
 import { addActiveKey, removeActiveKey } from '@dux/player_character';
 import { allowedKeys } from '@utils/key_codes';
 import { assignKey, removeKey } from '@utils/keypress_handlers';
-import { createPlayerAvatar } from '@utils/avatar_helpers';
+import { createImage } from '@utils/image_helpers';
 import styles from './styles.scss';
 
+const terrainSpriteSheet = require('@images/terrain.png');
 const playerSprite = require('@images/swordsman.png');
 
 class Stage extends Component {
@@ -18,12 +20,17 @@ class Stage extends Component {
     this.state = {
       animation: null,
       autoUpdateX: null,
+      cellSize: 96,
+      cols: 12,
       gameStarted: false,
       context: null,
+      overworld: null,
       player: null, // this will eventually be an array of players
+      rows: 12,
+      // 12 x 12 grid made of 96 x 96 tiles
       stage: {
-        width: 800,
-        height: 600,
+        width: 1152,
+        height: 1152,
       },
     };
 
@@ -35,6 +42,7 @@ class Stage extends Component {
     this.update = this.update.bind(this);
     this.handleAnimationFrameStop = this.handleAnimationFrameStop.bind(this);
     this.kickoffAnimationFrames = this.kickoffAnimationFrames.bind(this);
+    this.initializeOverwolrd = this.initializeOverwolrd.bind(this);
   }
 
   componentDidMount() {
@@ -44,6 +52,7 @@ class Stage extends Component {
       this.gameStart({ context });
     }
 
+    // animation start
     this.kickoffAnimationFrames();
   }
 
@@ -51,6 +60,7 @@ class Stage extends Component {
     this.setState({ context }, () => {
       this.initializeContextValues();
       this.initializePlayerCharacter();
+      this.initializeOverwolrd();
     });
   }
 
@@ -67,22 +77,37 @@ class Stage extends Component {
   }
 
   initializePlayerCharacter() {
-    const avatar = createPlayerAvatar(playerSprite);
+    const { context } = this.state;
+    const avatar = createImage(playerSprite);
     const player = new PlayerCharacter({ avatar });
 
-    player.render(this.state.context);
+    player.render(context);
     this.setState({ player });
   }
 
-  // ==========================
+  initializeOverwolrd() {
+    const { cellSize, cols, rows, context } = this.state;
+    const spriteMap = createImage(terrainSpriteSheet);
+    const overworldParams = {
+      spriteMap,
+      cols,
+      rows,
+      cellSize,
+    };
+
+    const overworld = new Overworld(overworldParams);
+    overworld.render(context);
+    this.setState({ overworld });
+  }
 
   update() {
-    const { context, player } = this.state;
+    const { context, player, overworld } = this.state;
 
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.initializeContextValues();
     this.updatePlayerPosition();
+    overworld.render(context);
     player.render(context);
     context.restore();
 
