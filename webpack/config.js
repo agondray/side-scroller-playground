@@ -87,7 +87,7 @@ module.exports = {
         use: {
           loader: 'url-loader',
           options: {
-            limit: 25000,
+            limit: 1000000,
             name: 'images/[name].[ext]',
           },
         },
@@ -97,10 +97,11 @@ module.exports = {
   resolve: {
     alias: {
       '@components': path.resolve(path.join(__dirname, '../src/client/components')),
-      '@entities': path.resolve(path.join(__dirname, '../src/client/engine/entities')),
+      '@entities': path.resolve(path.join(__dirname, '../src/client/engines/entities')),
       '@dux': path.resolve(path.join(__dirname, '../src/client/dux')),
       '@images': path.resolve(path.join(__dirname, '../src/client/assets/images')),
       '@utils': path.resolve(path.join(__dirname, '../src/client/utils')),
+      '@engines': path.resolve(path.join(__dirname, '../src/client/engines')),
     },
     extensions: ['.js', '.jsx', '.scss'],
   },
