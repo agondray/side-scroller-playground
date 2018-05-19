@@ -13,6 +13,6 @@ export default class Overworld {
 
   render(context) {
     const { spriteMap, cols, rows } = this.attributes;
-    generateBaseLayer({ type: 'grass', context, spriteMap, rows, cols });
+    generateBaseLayer({ type: 'snow', context, spriteMap, rows, cols });
   }
 }

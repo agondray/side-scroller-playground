@@ -1,0 +1,37 @@
+.container {
+  color: #fff;
+}
+
+.tile {
+  width: 96px;
+  height: 96px;
+}
+
+.grass {
+  display: block;
+  width: 96px;
+  height: 32px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: 0 -352px;
+}
+
+.snow {
+  display: block;
+  width: 96px;
+  height: 32px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: -576px -544px;
+}
+
+.dirt {
+  display: block;
+  width: 96px;
+  height: 96px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: 0px -64px;
+}
+
+.selected {
+  border: 3px solid #f00;
+  border-radius: 5px;
+}

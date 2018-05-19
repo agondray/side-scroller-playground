@@ -10,10 +10,10 @@ var path = require('path');
 var qs = require('qs');
 var autoprefixer = require('autoprefixer');
 
-var TEMPLATE = path.join(__dirname, '../src/index.html');
+var TEMPLATE = path.resolve(__dirname, '../src/index.html');
 var INDEX_NAME = 'index.html';
-var ENTRY_PATH = path.join(__dirname, '../src/client/index.jsx');
-var OUTPUT_PATH = path.join(__dirname, '../build');
+var ENTRY_PATH = path.resolve(__dirname, '../src/client/index.jsx');
+var OUTPUT_PATH = path.resolve(__dirname, '../build');
 var PORT = 1337;
 
 module.exports = {
@@ -28,7 +28,7 @@ module.exports = {
     ],
   },
   output: {
-    path: path.join(__dirname, OUTPUT_PATH),
+    path: OUTPUT_PATH,
     publicPath: '/',
     filename: '[name]__[hash].js',
     chunkFilename: '[name]__[chunkhash].chunk.js',
@@ -59,7 +59,7 @@ module.exports = {
                 modules: true,
                 import: true,
                 importLoaders: 1,
-                localIdentName: '[path][name]_[local]--[hash:base64:8]',
+                localIdentName: '[name]_[local]--[hash:base64:8]',
                 camelCase: true,
                 minimize: true,
                 sourceMap: true,
@@ -70,7 +70,7 @@ module.exports = {
               loader: 'postcss-loader',
               options: {
                 sourceMap: true,
-                config: { path: path.join(__dirname, './postcss.config.js') },
+                config: { path: path.resolve(__dirname, './postcss.config.js') },
               },
             },
             {
@@ -96,12 +96,14 @@ module.exports = {
   },
   resolve: {
     alias: {
-      '@components': path.resolve(path.join(__dirname, '../src/client/components')),
-      '@entities': path.resolve(path.join(__dirname, '../src/client/engines/entities')),
-      '@dux': path.resolve(path.join(__dirname, '../src/client/dux')),
-      '@images': path.resolve(path.join(__dirname, '../src/client/assets/images')),
-      '@utils': path.resolve(path.join(__dirname, '../src/client/utils')),
-      '@engines': path.resolve(path.join(__dirname, '../src/client/engines')),
+      '@components': path.resolve(__dirname, '../src/client/components'),
+      '@containers': path.resolve(__dirname, '../src/client/containers'),
+      '@entities': path.resolve(__dirname, '../src/client/engines/entities'),
+      '@dux': path.resolve(__dirname, '../src/client/dux'),
+      '@images': path.resolve(__dirname, '../src/client/assets/images'),
+      '@utils': path.resolve(__dirname, '../src/client/utils'),
+      '@engines': path.resolve(__dirname, '../src/client/engines'),
+      '@devtools': path.resolve(__dirname, '../src/devtools'),
     },
     extensions: ['.js', '.jsx', '.scss'],
   },
@@ -110,6 +112,7 @@ module.exports = {
     port: PORT,
     overlay: true,
     progress: true,
+    historyApiFallback: true,
   },
   optimization: {
     splitChunks: {
