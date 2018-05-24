@@ -10,6 +10,7 @@ export default class PlayerCharacter {
         y: 5,
       },
       avatar: avatar || null, // #here - avatar must be required || throw error
+      cellSize: 96,
     };
   }
 
@@ -34,12 +35,12 @@ export default class PlayerCharacter {
   }
 
   render(context) {
-    const { avatar, position } = this.attributes;
+    const { avatar, position, cellSize } = this.attributes;
     console.log('player position: ', position);
 
     context.save();
     // #here add isMoving logic for re-painting avatar
-    context.drawImage(avatar, 216, 0, 72, 72, position.x, position.y, 72, 72);
+    context.drawImage(avatar, 216, 0, 72, 72, position.x, position.y, cellSize, cellSize);
     context.restore();
   }
 }

@@ -1,12 +1,16 @@
 import React from 'react';
-import { Route, IndexRoute, browserHistory} from 'react-router';
-import App from './components/app/';
-import Hub from './components/hub/';
-import Sandbox from './components/sandbox/';
+import { Route, Switch } from 'react-router';
+import App from '@containers/app';
+import Hub from '@containers/hub';
+import Sandbox from '@containers/sandbox';
+import MapBuilder from '@containers/map_builder';
 
 export default (
-  <Route path="/" component={App}>
-    <IndexRoute component={Hub} />
-    <Route path="/sandbox" component={Sandbox} />
-  </Route>
+  <App>
+    <Switch>
+      <Route exact path="/" component={Hub} />
+      <Route exact path="/sandbox" component={Sandbox} />
+      <Route exact path="/map-builder" component={MapBuilder} />
+    </Switch>
+  </App>
 );

@@ -21,7 +21,6 @@ const enhance = compose (
   lifecycle({
     componentWillMount() {
       console.log('topnav index - willmount - this is a test');
-      console.log('props: ', this.props);
     },
     componentDidMount() {
       console.log('didmount - topnav index');

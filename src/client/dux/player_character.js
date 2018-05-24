@@ -6,16 +6,16 @@ const ADD_ACTIVE_KEYS = 'player_character/ADD_ACTIVE_KEYS';
 const REMOVE_ACTIVE_KEY = 'player_character/REMOVE_ACTIVE_KEY';
 
 // Reducer
-export const initialState = {
+const initialState = {
   activeKeys: {},
   player: null, // #here - this will eventually be an array of players
 };
 
 export default function playerCharacterReducer(state = initialState, action = {}) {
   const { payload } = action;
-  switch (action) {
+  switch (action.type) {
     case ADD_ACTIVE_KEYS: {
-      return update(state.activeKeys, { $merge: payload });
+      return update(state, { activeKeys: { $merge: payload } });
     }
     default: {
       return state;

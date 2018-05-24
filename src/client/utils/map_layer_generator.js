@@ -14,7 +14,7 @@
 
 const tileTypes = ['wall', 'snow', 'water'];
 
-const tileSide = 96;
+const tileSize = 96;
 
 // assume 1 tile = 96 x 96
 const snowSpriteParams = {
@@ -35,7 +35,7 @@ const grassLayerParams = {
   sh: 32,
 };
 
-const drawSnowSprite = ({
+const drawSprite = ({
   context,
   spriteMap,
   sx,
@@ -46,12 +46,12 @@ const drawSnowSprite = ({
 // this works
 const drawFloor = ({ context, spriteMap, rows, cols, spriteParams }) => {
   // each 96 x 96 snow tile needs 3 stacked snow sprites
-  const snowRows = rows * 3;
+  const floorRows = rows * 3;
   const { sw, sh } = spriteParams;
 
-  return Array(snowRows).fill().map((_y, y) => (
+  return Array(floorRows).fill().map((_y, y) => (
     Array(cols).fill().map((_x, x) => (
-      drawSnowSprite({
+      drawSprite({
         context,
         spriteMap,
         sx: x * sw,
@@ -63,7 +63,7 @@ const drawFloor = ({ context, spriteMap, rows, cols, spriteParams }) => {
 };
 
 // params = { type, context, spriteMap, rows, cols, }
-const generateBaseLayer = (params) => {
+export const generateBaseLayer = (params) => {
   switch (params.type) {
     case 'snow': {
       return drawFloor({ ...params, spriteParams: snowSpriteParams });
@@ -74,4 +74,4 @@ const generateBaseLayer = (params) => {
   }
 };
 
-export { generateBaseLayer };
+export default { generateBaseLayer };
