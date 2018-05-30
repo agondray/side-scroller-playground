@@ -1,9 +1,9 @@
 import { spriteData, tileSpecs } from '@utils/constants';
 
-export const drawGrid = ({ context, cellSize, rows, cols }) => {
+export const drawGrid = ({ context, cellSize, rows, cols, gridColor }) => {
   context.restore();
   context.fillStyle = '#ccc';
-  context.strokeStyle = '#f00';
+  context.strokeStyle = gridColor;
 
   const mapMatrix = Array(rows).fill().map((_y, y) => {
     const columnsArray = Array(cols).fill().map((_x, x) => {
@@ -38,7 +38,7 @@ export const generateGridObject = (mapMatrix) => {
 };
 
 export const highlightCell = ({ context, tileSize, hx, hy }) => {
-  context.globalAlpha = 0.4;
+  context.globalAlpha = 0.5;
   context.fillStyle = '#fff';
   context.fillRect(
     hx,

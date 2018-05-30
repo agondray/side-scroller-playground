@@ -4,7 +4,11 @@ import { connect } from 'react-redux';
 
 import Canvas from '@components/canvas';
 import MapLegend from '@containers/map_legend';
-import { tileSpecs, gridSpecs } from '@utils/constants';
+import {
+  tileSpecs,
+  gridSpecs,
+  gridColors
+} from '@utils/constants';
 import {
   updateHoveredCell,
   updateGridMatrix,
@@ -33,6 +37,8 @@ class MapBuilder extends Component {
       canvasWidth: 1152, // 96 * 12
       canvasHeight: 1152,
       spriteMapImage: null,
+      gridColor: gridColors.mapMode,
+      inMapMode: true,
     };
 
     this.handleCanvasClick = this.handleCanvasClick.bind(this);
@@ -40,6 +46,7 @@ class MapBuilder extends Component {
     this.handleCanvasHover = this.handleCanvasHover.bind(this);
     this.update = this.update.bind(this);
     this.asyncUpdateGridObject = this.asyncUpdateGridObject.bind(this);
+    this.handleToggleClick = this.handleToggleClick.bind(this);
   }
 
   componentDidMount() {
@@ -52,8 +59,13 @@ class MapBuilder extends Component {
   }
 
   initializeTool({ ctx }) {
+    const { gridColor } = this.state;
     const { dispatch } = this.props;
-    const gridMatrix = drawGrid({ context: ctx, ...gridSpecs });
+    const gridMatrix = drawGrid({
+      gridColor,
+      context: ctx,
+      ...gridSpecs,
+    });
 
     const spriteMapImage = new Image();
     spriteMapImage.src = spriteMapSource;
@@ -69,6 +81,18 @@ class MapBuilder extends Component {
       dispatch(updateGridObject({ cellKey, data: { clickedCell, selectedTile } }));
       resolve();
     });
+  }
+
+  handleToggleClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { mapMode, wallMode } = gridColors;
+
+    this.setState({
+      inMapMode: !this.state.inMapMode,
+      gridColor: this.state.inMapMode ? wallMode : mapMode,
+    }, () => { this.update(); });
   }
 
   handleCanvasClick(e) {
@@ -149,11 +173,16 @@ class MapBuilder extends Component {
       canvasHeight,
       context,
       spriteMapImage,
+      gridColor,
     } = this.state;
 
     clearCanvas({ context, canvasWidth, canvasHeight });
     drawPaintedCells({ context, spriteMapImage, gridObject });
-    drawGrid({ context, ...gridSpecs }); // <-- calls context.save();
+    drawGrid({ // <-- calls context.save();
+      gridColor,
+      context,
+      ...gridSpecs,
+    });
   }
 
   render() {
@@ -163,6 +192,12 @@ class MapBuilder extends Component {
       <div className={styles.container}>
         <h1 className={styles.heading}>Your window to a new world...</h1>
         <MapLegend />
+        <button
+          className={styles.toggleModesButton}
+          onClick={this.handleToggleClick}
+        >
+          Toggle Build vs Wall Modes
+        </button>
         <Canvas
           canvasRef={(c) => { this.canvas = c; }}
           height={canvasWidth}
