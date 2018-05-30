@@ -133,13 +133,13 @@ class MapBuilder extends Component {
     const cy = e.clientY - canvasTopLeftY;
     const hx = Math.floor(cx / tileSize) * tileSize;
     const hy = Math.floor(cy / tileSize) * tileSize;
+    const { hx: prevHx, hy: prevHy } = this.props;
 
-    highlightCell({ context, tileSize, hx, hy });
-    dispatch(updateHoveredCell({ x: hx, y: hy }));
-
-    // #here
-    // this should only run when hovering on a different cell
-    this.update();
+    if (hx !== prevHx || hy !== prevHy) {
+      this.update();
+      highlightCell({ context, tileSize, hx, hy });
+      dispatch(updateHoveredCell({ x: hx, y: hy }));
+    }
   }
 
   update() {
