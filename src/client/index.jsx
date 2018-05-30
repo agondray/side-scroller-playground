@@ -1,11 +1,9 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Router, browserHistory } from 'react-router';
+import { BrowserRouter as Router } from 'react-router-dom';
 import createHistory from 'history/createBrowserHistory';
 import { createStore, applyMiddleware, compose } from 'redux';
 import { Provider } from 'react-redux';
-// import promiseMiddleware from 'redux-promise-middleware';
-// import createLogger from 'redux-logger';
 import thunk from 'redux-thunk';
 
 import routes from './routes.jsx';

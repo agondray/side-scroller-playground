@@ -22,10 +22,7 @@ module.exports = {
   devtool: 'cheap-module-eval-source-map',
   entry: {
     main: ENTRY_PATH,
-    vendor: [
-      'react',
-      'material-ui',
-    ],
+    vendor: ['react'],
   },
   output: {
     path: OUTPUT_PATH,

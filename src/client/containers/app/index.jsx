@@ -1,17 +1,13 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import React from 'react';
 
-import Header from '@components/header';
+import Navigation from '@components/navigation';
 import style from './styles.scss';
 
 const App = ({ children }) => (
-  <MuiThemeProvider>
-    <div className={style.app}>
-      <Header />
-      {React.Children.map(children, child => React.cloneElement(child))}
-    </div>
-  </MuiThemeProvider>
+  <div className={style.app}>
+    <Navigation />
+    {React.Children.map(children, child => React.cloneElement(child))}
+  </div>
 );
 
 export default App;

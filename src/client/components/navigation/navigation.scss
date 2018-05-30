@@ -1,0 +1,24 @@
+.container {
+  background: linear-gradient(45deg, #2196f3, #5500dd);
+  display: block;
+}
+
+.navBar {
+  align-items: center;
+  display: flex;
+  height: 50px;
+  justify-content: center;
+}
+
+.navLink {
+  font-size: 18px;
+  font-weight: 600;
+  margin-right: 50px;
+  text-decoration: underline;
+
+  &:hover,
+  &:visited,
+  &:active {
+    color: #fff;
+  }
+}
