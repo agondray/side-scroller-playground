@@ -58,6 +58,11 @@ export const tileSpecs = {
   },
 };
 
+export const gridColors = {
+  mapMode: '#000',
+  wallMode: '#f00',
+};
+
 export const gridSpecs = {
   cellSize: 96,
   rows: 12,
@@ -68,4 +73,5 @@ export default {
   spriteData,
   tileSpecs,
   gridSpecs,
+  gridColors,
 };

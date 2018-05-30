@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import styles from './canvas.scss';
+
 const Canvas = ({
   style,
   canvasRef,
@@ -13,6 +15,7 @@ const Canvas = ({
   onMouseOver,
 }) => (
   <canvas
+    className={styles.canvas}
     style={style}
     ref={canvasRef}
     height={height}
