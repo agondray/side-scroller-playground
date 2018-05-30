@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import RaisedButton from 'material-ui/RaisedButton';
 
 import Stage from '@containers/stage';
-import styles from './style';
 
 const Hub = () => (
   <div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Switch } from 'react-router';
+import { Route, Switch } from 'react-router-dom';
 import App from '@containers/app';
 import Hub from '@containers/hub';
 import Sandbox from '@containers/sandbox';
