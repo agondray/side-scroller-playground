@@ -44,6 +44,7 @@ export const spriteData = {
 // =================
 // Tile/Grid Constants
 // =================
+const hoverOpacity = '0.5';
 export const tileSpecs = {
   tileSize: 96,
   spriteSpecs: {
@@ -59,8 +60,14 @@ export const tileSpecs = {
 };
 
 export const gridColors = {
-  mapMode: '#000',
-  wallMode: '#f00',
+  mapBuilderMode: {
+    grid: '#000',
+    highlight: `rgba(255, 255, 255, ${hoverOpacity})`,
+  },
+  wallBuilderMode: {
+    grid: '#f00',
+    highlight: `rgba(1, 139, 247, ${hoverOpacity})`,
+  },
 };
 
 export const gridSpecs = {
@@ -69,9 +76,23 @@ export const gridSpecs = {
   cols: 12,
 };
 
+export const cellTypes = {
+  floor: {
+    name: 'envSprite',
+    impassable: false,
+    highlight: 'rgba(0, 0, 0, 0)',
+  },
+  wall: {
+    name: 'wall',
+    impassable: true,
+    highlight: `rgba(255, 0, 0, ${hoverOpacity})`,
+  },
+};
+
 export default {
   spriteData,
   tileSpecs,
   gridSpecs,
   gridColors,
+  cellTypes,
 };

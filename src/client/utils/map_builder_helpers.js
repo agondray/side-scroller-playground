@@ -37,16 +37,14 @@ export const generateGridObject = (mapMatrix) => {
   return mapObject;
 };
 
-export const highlightCell = ({ context, tileSize, hx, hy }) => {
-  context.globalAlpha = 0.5;
-  context.fillStyle = '#fff';
+export const highlightCell = ({ context, tileSize, hx, hy, cellHighlightColor }) => {
+  context.fillStyle = cellHighlightColor;
   context.fillRect(
     hx,
     hy,
     tileSize,
     tileSize,
   );
-  context.globalAlpha = 1;
 
   context.save();
 };
@@ -70,7 +68,7 @@ export const drawSprite = ({
 
 export const drawFloorTile = ({ drawFloorSpriteParams }) => {
   const { spriteSpecs } = tileSpecs;
-  const { hx, hy, type } = drawFloorSpriteParams;
+  const { hx, hy, type, context } = drawFloorSpriteParams;
   const { height: spriteHeight, tileRows } = spriteSpecs[type];
   const sx = hx;
 
@@ -78,28 +76,41 @@ export const drawFloorTile = ({ drawFloorSpriteParams }) => {
     const sy = hy + (spriteHeight * y);
     drawSprite({ sx, sy, ...drawFloorSpriteParams });
   });
+
+  context.save();
 };
 
-export const drawPaintedCells = ({ context, spriteMapImage, gridObject }) => {
+export const drawPaintedCells = ({
+  context,
+  spriteMapImage,
+  gridObject,
+  showImpassableHighlights,
+}) => {
   const gridKeys = Object.keys(gridObject);
   return gridKeys.forEach((key) => {
-    if (!gridObject[key].selectedTile) return;
-
     const coordsXY = key.split('_');
     const hx = parseInt(coordsXY[0], 10);
     const hy = parseInt(coordsXY[1], 10);
-    const { tileCode, type } = gridObject[key].selectedTile;
-    const { spriteParams } = spriteData[tileCode];
-    const drawFloorSpriteParams = {
-      type,
-      context,
-      spriteMapImage,
-      hx,
-      hy,
-      ...spriteParams,
-    };
+    const { cellSize } = gridObject[key];
 
-    drawFloorTile({ drawFloorSpriteParams });
+    if (gridObject[key].tileData) {
+      const { tileData: { tileCode, type } } = gridObject[key];
+      const { spriteParams } = spriteData[tileCode];
+      const drawFloorSpriteParams = {
+        type,
+        context,
+        spriteMapImage,
+        hx,
+        hy,
+        ...spriteParams,
+      };
+      drawFloorTile({ drawFloorSpriteParams });
+    }
+
+    if (gridObject[key].cellType && showImpassableHighlights) {
+      const { cellType: { highlight } } = gridObject[key];
+      highlightCell({ context, tileSize: cellSize, hx, hy, cellHighlightColor: highlight });
+    }
   });
 };
 

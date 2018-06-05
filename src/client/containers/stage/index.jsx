@@ -56,6 +56,11 @@ class Stage extends Component {
     this.kickoffAnimationFrames();
   }
 
+  componentWillUnmount() {
+    console.log('Unmounting Stage -- clearing requestAnimationFrame');
+    this.handleAnimationFrameStop();
+  }
+
   gameStart({ context }) {
     this.setState({ context }, () => {
       this.initializeContextValues();

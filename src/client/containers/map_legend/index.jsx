@@ -48,11 +48,12 @@ class MapLegend extends Component {
   }
 
   renderMapTiles() {
-    const { selectedTile } = this.props;
+    const { selectedTile: { tileCode } } = this.props;
     return Object.keys(spriteData).map(key => (
       <MapTile
+        key={key}
         code={key}
-        isSelected={selectedTile.tileCode === key}
+        isSelected={tileCode && tileCode === key}
         handleTileClick={this.handleTileClick}
       />
     ));
