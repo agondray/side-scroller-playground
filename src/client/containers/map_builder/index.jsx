@@ -7,14 +7,13 @@ import MapLegend from '@containers/map_legend';
 import {
   tileSpecs,
   gridSpecs,
-  gridColors
+  gridColors,
+  cellTypes,
 } from '@utils/constants';
 import {
   updateHoveredCell,
-  updateGridMatrix,
   initializeGridObject,
   updateGridObject,
-  updateSelectedCell,
 } from '@dux/map_builder';
 import {
   drawGrid,
@@ -23,6 +22,7 @@ import {
   clearCanvas,
   drawFloorTile,
   drawPaintedCells,
+  highlightImpassableCells,
 } from '@utils/map_builder_helpers';
 import styles from './map_builder.scss';
 
@@ -37,7 +37,8 @@ class MapBuilder extends Component {
       canvasWidth: 1152, // 96 * 12
       canvasHeight: 1152,
       spriteMapImage: null,
-      gridColor: gridColors.mapMode,
+      gridColor: gridColors.mapBuilderMode.grid, // <-- does not need to be in state
+      cellHoverColor: gridColors.mapBuilderMode.highlight, // <-- does not need to be in state
       inMapMode: true,
     };
 
@@ -46,7 +47,7 @@ class MapBuilder extends Component {
     this.handleCanvasHover = this.handleCanvasHover.bind(this);
     this.update = this.update.bind(this);
     this.asyncUpdateGridObject = this.asyncUpdateGridObject.bind(this);
-    this.handleToggleClick = this.handleToggleClick.bind(this);
+    this.handleModeToggleClick = this.handleModeToggleClick.bind(this);
   }
 
   componentDidMount() {
@@ -72,26 +73,44 @@ class MapBuilder extends Component {
 
     this.setState({ context: ctx, spriteMapImage });
     dispatch(initializeGridObject(generateGridObject(gridMatrix)));
-    dispatch(updateGridMatrix(gridMatrix));
   }
 
-  asyncUpdateGridObject({ cellKey, clickedCell, selectedTile }) {
-    const { dispatch } = this.props;
+  asyncUpdateGridObject(params) {
+    const { cellKey, selectedTile, selectedCellType } = params;
+    const { dispatch, gridObject } = this.props;
+    const { tileData } = gridObject[cellKey];
+
     return new Promise((resolve) => {
-      dispatch(updateGridObject({ cellKey, data: { clickedCell, selectedTile } }));
+      dispatch(updateGridObject({
+        cellKey,
+        data: {
+          tileData: selectedTile || tileData,
+          cellType: selectedCellType,
+        },
+      }));
+
       resolve();
     });
   }
 
-  handleToggleClick(e) {
-    e.preventDefault();
+  handleModeToggleClick(e) {
     e.stopPropagation();
-
-    const { mapMode, wallMode } = gridColors;
+    const {
+      mapBuilderMode: {
+        grid: mapBuilderGridColor,
+        highlight: mapBuilderHighlightColor,
+      },
+      wallBuilderMode: {
+        grid: wallBuilderGridColor,
+        highlight: wallBuilderHighlightColor,
+      },
+    } = gridColors;
 
     this.setState({
       inMapMode: !this.state.inMapMode,
-      gridColor: this.state.inMapMode ? wallMode : mapMode,
+      gridColor: this.state.inMapMode ? wallBuilderGridColor : mapBuilderGridColor,
+      cellHoverColor: this.state.inMapMode ?
+        wallBuilderHighlightColor : mapBuilderHighlightColor,
     }, () => { this.update(); });
   }
 
@@ -100,54 +119,57 @@ class MapBuilder extends Component {
     e.stopPropagation();
 
     const {
-      gridObject,
       hx,
       hy,
       selectedTile,
+      selectedCellType: defaultCellType,
+      gridObject,
     } = this.props;
+    const {
+      context,
+      spriteMapImage,
+      inMapMode,
+    } = this.state;
     const {
       type,
       tileCode,
-      spriteX,
-      spriteY,
+      dx,
+      dy,
     } = selectedTile;
-
-    if (!tileCode) return null;
-
-    const { tileSize, spriteSpecs } = tileSpecs;
-    const {
-      context,
-      spriteMapImage,
-    } = this.state;
     const cellKey = `${hx}_${hy}`;
     const clickedCell = gridObject[cellKey];
+    const clickedCellType = clickedCell.cellType || defaultCellType;
+    const { tileSize, spriteSpecs } = tileSpecs;
 
-    const drawFloorSpriteParams = {
-      type,
-      context,
-      spriteMapImage,
-      dx: spriteX,
-      dy: spriteY,
-      dw: tileSize,
-      dh: spriteSpecs[type].height,
-      hx,
-      hy,
-      sw: tileSize,
-      sh: spriteSpecs[type].height,
-    };
+    if (inMapMode && tileCode) {
+      const drawFloorSpriteParams = {
+        type,
+        context,
+        spriteMapImage,
+        dx,
+        dy,
+        dw: tileSize,
+        dh: spriteSpecs[type].height,
+        hx,
+        hy,
+        sw: tileSize,
+        sh: spriteSpecs[type].height,
+      };
 
-    drawFloorTile({ drawFloorSpriteParams });
-    context.save();
-    this.asyncUpdateGridObject({ cellKey, clickedCell, selectedTile })
-      .then(() => (this.update()));
-
-    return null;
+      drawFloorTile({ drawFloorSpriteParams });
+      this.asyncUpdateGridObject({ cellKey, selectedTile, selectedCellType: clickedCellType });
+    } else if (!inMapMode) {
+      highlightCell({ context, tileSize, hx, hy, cellHighlightColor: cellTypes.wall.highlight });
+      this.asyncUpdateGridObject({ cellKey, selectedCellType: cellTypes.wall });
+    } else {
+      return null;
+    }
   }
 
   handleCanvasHover(e) {
     const { tileSize } = tileSpecs;
     const { dispatch } = this.props;
-    const { context } = this.state;
+    const { context, cellHoverColor } = this.state;
 
     const rect = this.canvas.getBoundingClientRect();
     const canvasTopLeftX = rect.left;
@@ -160,9 +182,9 @@ class MapBuilder extends Component {
     const { hx: prevHx, hy: prevHy } = this.props;
 
     if (hx !== prevHx || hy !== prevHy) {
-      this.update();
-      highlightCell({ context, tileSize, hx, hy });
       dispatch(updateHoveredCell({ x: hx, y: hy }));
+      this.update();
+      highlightCell({ context, tileSize, hx, hy, cellHighlightColor: cellHoverColor });
     }
   }
 
@@ -174,11 +196,12 @@ class MapBuilder extends Component {
       context,
       spriteMapImage,
       gridColor,
+      inMapMode,
     } = this.state;
 
     clearCanvas({ context, canvasWidth, canvasHeight });
-    drawPaintedCells({ context, spriteMapImage, gridObject });
-    drawGrid({ // <-- calls context.save();
+    drawPaintedCells({ context, spriteMapImage, gridObject, showImpassableHighlights: !inMapMode });
+    drawGrid({
       gridColor,
       context,
       ...gridSpecs,
@@ -186,15 +209,15 @@ class MapBuilder extends Component {
   }
 
   render() {
-    const { canvasWidth, canvasHeight } = this.state;
+    const { canvasWidth, canvasHeight, inMapMode } = this.state;
 
     return (
       <div className={styles.container}>
         <h1 className={styles.heading}>Your window to a new world...</h1>
-        <MapLegend />
+        {inMapMode ? <MapLegend /> : null }
         <button
           className={styles.toggleModesButton}
-          onClick={this.handleToggleClick}
+          onClick={this.handleModeToggleClick}
         >
           Toggle Build vs Wall Modes
         </button>
@@ -214,6 +237,7 @@ MapBuilder.propTypes = {
   dispatch: PropTypes.func.isRequired,
   gridObject: PropTypes.shape().isRequired,
   selectedTile: PropTypes.shape().isRequired,
+  selectedCellType: PropTypes.shape().isRequired,
   hx: PropTypes.number,
   hy: PropTypes.number,
 };
@@ -227,11 +251,13 @@ const duckState = ({ mapBuilder: {
   hoveredCell: { x: hx, y: hy },
   gridObject,
   selectedTile,
+  selectedCellType,
 } }) => ({
   hx,
   hy,
   gridObject,
   selectedTile,
+  selectedCellType,
 });
 
 export default connect(duckState)(MapBuilder);

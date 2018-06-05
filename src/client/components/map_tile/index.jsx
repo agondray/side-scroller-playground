@@ -38,11 +38,11 @@ const MapTile = ({ code, isSelected, handleTileClick }) => {
 MapTile.propTypes = {
   code: PropTypes.string.isRequired,
   handleTileClick: PropTypes.func.isRequired,
-  isSelected: PropTypes.shape(),
+  isSelected: PropTypes.bool,
 };
 
 MapTile.defaultProps = {
-  isSelected: {},
+  isSelected: false,
 };
 
 export default MapTile;
