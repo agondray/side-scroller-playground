@@ -13,3 +13,17 @@
   width: 150px;
   border-radius: 5px;
 }
+
+.buttonsContainer {
+  display: flex;
+  justify-content: center;
+  width: 500px
+}
+
+.saveButton {
+  background-color: #0cc;
+  color: #fff;
+  height: 50px;
+  width: 150px;
+  border-radius: 5px;
+}

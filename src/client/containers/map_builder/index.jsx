@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import Canvas from '@components/canvas';
+import MapBuilderSaveModal from '@components/map-builder-save-modal';
 import MapLegend from '@containers/map_legend';
 import {
   tileSpecs,
@@ -22,7 +23,6 @@ import {
   clearCanvas,
   drawFloorTile,
   drawPaintedCells,
-  highlightImpassableCells,
 } from '@utils/map_builder_helpers';
 import styles from './map_builder.scss';
 
@@ -40,6 +40,9 @@ class MapBuilder extends Component {
       gridColor: gridColors.mapBuilderMode.grid, // <-- does not need to be in state
       cellHoverColor: gridColors.mapBuilderMode.highlight, // <-- does not need to be in state
       inMapMode: true,
+      imageBlob: '',
+      imageName: '',
+      saving: false,
     };
 
     this.handleCanvasClick = this.handleCanvasClick.bind(this);
@@ -48,6 +51,9 @@ class MapBuilder extends Component {
     this.update = this.update.bind(this);
     this.asyncUpdateGridObject = this.asyncUpdateGridObject.bind(this);
     this.handleModeToggleClick = this.handleModeToggleClick.bind(this);
+    this.handleSaveClick = this.handleSaveClick.bind(this);
+    this.handleModalInputChange = this.handleModalInputChange.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
   }
 
   componentDidMount() {
@@ -114,6 +120,30 @@ class MapBuilder extends Component {
     }, () => { this.update(); });
   }
 
+  handleSaveClick() {
+    const { gridObject } = this.props;
+    const {
+      canvasWidth,
+      canvasHeight,
+      context,
+      spriteMapImage,
+    } = this.state;
+
+    clearCanvas({ context, canvasWidth, canvasHeight });
+    drawPaintedCells({ context, spriteMapImage, gridObject });
+
+    this.setState({ saving: true, imageBlob: this.canvas.toDataURL() });
+  }
+
+  handleModalInputChange(val) {
+    this.setState({ imageName: val });
+  }
+
+  handleModalClose() {
+    this.setState({ saving: false, imageName: '', imageBlob: '' });
+    this.update();
+  }
+
   handleCanvasClick(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -161,9 +191,9 @@ class MapBuilder extends Component {
     } else if (!inMapMode) {
       highlightCell({ context, tileSize, hx, hy, cellHighlightColor: cellTypes.wall.highlight });
       this.asyncUpdateGridObject({ cellKey, selectedCellType: cellTypes.wall });
-    } else {
-      return null;
     }
+
+    return null;
   }
 
   handleCanvasHover(e) {
@@ -209,18 +239,33 @@ class MapBuilder extends Component {
   }
 
   render() {
-    const { canvasWidth, canvasHeight, inMapMode } = this.state;
+    const {
+      canvasWidth,
+      canvasHeight,
+      inMapMode,
+      imageBlob,
+      imageName,
+      saving,
+    } = this.state;
 
     return (
       <div className={styles.container}>
         <h1 className={styles.heading}>Your window to a new world...</h1>
         {inMapMode ? <MapLegend /> : null }
-        <button
-          className={styles.toggleModesButton}
-          onClick={this.handleModeToggleClick}
-        >
-          Toggle Build vs Wall Modes
-        </button>
+        <div className={styles.buttonsContainer}>
+          <button
+            className={styles.toggleModesButton}
+            onClick={this.handleModeToggleClick}
+          >
+            Toggle Build vs Wall Modes
+          </button>
+          <button
+            className={styles.saveButton}
+            onClick={this.handleSaveClick}
+          >
+            SAVE AND DOWNLOAD MAP IMAGE
+          </button>
+        </div>
         <Canvas
           canvasRef={(c) => { this.canvas = c; }}
           height={canvasWidth}
@@ -228,6 +273,14 @@ class MapBuilder extends Component {
           onClick={this.handleCanvasClick}
           onMouseMove={this.handleCanvasHover}
         />
+        { saving ?
+          <MapBuilderSaveModal
+            handleInputChange={this.handleModalInputChange}
+            handleConfirmClick={this.handleModalClose}
+            imageBlob={imageBlob}
+            imageName={imageName}
+          /> :
+          null }
       </div>
     );
   }

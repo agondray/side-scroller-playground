@@ -84,7 +84,7 @@ export const drawPaintedCells = ({
   context,
   spriteMapImage,
   gridObject,
-  showImpassableHighlights,
+  showImpassableHighlights = false,
 }) => {
   const gridKeys = Object.keys(gridObject);
   return gridKeys.forEach((key) => {
