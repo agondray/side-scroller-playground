@@ -1,0 +1,53 @@
+.overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 100;
+}
+
+.wrapper {
+  height: 800px;
+  width: 800px;
+  overflow: scroll;
+  margin: auto;
+  background-color: #fff;
+  border: 3px solid #000;
+  border-radius: 3px;
+}
+
+.heading {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.nameInput {
+  border: 1px solid #000;
+  border-radius: 3px;
+}
+
+.buttonsBox {
+  display: flex;
+}
+
+.downloadButton,
+.closeButton {
+  color: #fff;
+  background-color: #aaa;
+  border: 1px solid #000;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 16px;
+  width: 100px;
+  height: 50px;
+}
+
+.mapPreview {
+  border: 2px solid #000;
+  display: block;
+  margin: 0 auto;
+}
