@@ -7,7 +7,8 @@
 ## Why aren't you using a game engine to build a game?!
 1. For the purpose of learning and experience building a browser-based game from mostly scratch.
 2. Canvas is a piece of tech I've been interested to learn more about so this seemed like a good excuse for it.
-3. I really like JavaScript and it's the language I feel most comfortable with when coding. Let's just say I'm lazy and I didn't want to leave my comfort zone for this project. :P
+3. There are existing JavaScript game engines out there, but I was unsatisfied after trying out a number of them.
+4. Most game engines require using a different language. I'm quite open to learning other programming languages, but I really like JavaScript and it's the language I feel most comfortable with when coding. Let's just say I felt lazy and didn't want to leave my comfort zone for this particular project. :P
 
 ## Requirements for running a local development build
 * Latest stable version of `node.js`
