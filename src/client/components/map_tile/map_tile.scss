@@ -10,6 +10,7 @@
   width: 96px;
 }
 
+// ====== floor tiles ======
 .grass {
   display: block;
   width: 96px;
@@ -26,13 +27,57 @@
   background-position: -576px -544px;
 }
 
+.desert {
+  display: block;
+  width: 96px;
+  height: 32px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: 0px -160px;
+}
+
 .dirt {
+  display: block;
+  width: 96px;
+  height: 32px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: -192px -160px;
+}
+
+.granite {
+  display: block;
+  width: 96px;
+  height: 32px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: -288px -160px;
+}
+
+.water {
+  display: block;
+  width: 96px;
+  height: 32px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: -480px -544px;
+}
+// ===========================
+
+// ====== object tiles ======
+.sandPatch {
   display: block;
   width: 96px;
   height: 96px;
   background: url('src/client/assets/images/terrain.png');
   background-position: 0px -64px;
 }
+
+.tinyLake {
+  display: block;
+  width: 96px;
+  height: 96px;
+  background: url('src/client/assets/images/terrain.png');
+  background-position: -480px -448px;
+}
+// ===========================
+
 
 .selected {
   border: 3px solid #f00;

@@ -28,11 +28,71 @@ export const spriteData = {
     },
   },
   TILE_03: {
+    name: 'desert',
+    type: 'floor',
+    spriteParams: {
+      dx: 0,
+      dy: 160,
+      dw: 96,
+      dh: 32,
+      sw: 96,
+      sh: 32,
+    },
+  },
+  TILE_04: {
     name: 'dirt',
-    type: 'ground',
+    type: 'floor',
+    spriteParams: {
+      dx: 192,
+      dy: 160,
+      dw: 96,
+      dh: 32,
+      sw: 96,
+      sh: 32,
+    },
+  },
+  TILE_05: {
+    name: 'granite',
+    type: 'floor',
+    spriteParams: {
+      dx: 288,
+      dy: 160,
+      dw: 96,
+      dh: 32,
+      sw: 96,
+      sh: 32,
+    },
+  },
+  TILE_06: {
+    name: 'water',
+    type: 'floor',
+    spriteParams: {
+      dx: 480,
+      dy: 544,
+      dw: 96,
+      dh: 32,
+      sw: 96,
+      sh: 32,
+    },
+  },
+  TILE_07: {
+    name: 'sandPatch',
+    type: 'object',
     spriteParams: {
       dx: 0,
       dy: 64,
+      dw: 96,
+      dh: 96,
+      sw: 96,
+      sh: 96,
+    },
+  },
+  TILE_08: {
+    name: 'tinyLake',
+    type: 'object',
+    spriteParams: {
+      dx: 480,
+      dy: 448,
       dw: 96,
       dh: 96,
       sw: 96,
@@ -52,7 +112,7 @@ export const tileSpecs = {
       height: 32,
       tileRows: 3,
     },
-    ground: {
+    object: {
       height: 96,
       tileRows: 1,
     },
