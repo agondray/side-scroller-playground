@@ -23,8 +23,14 @@
 5. Go to `localhost:1337` and explore the app!
 
 ## Current Available Features
-* A map-builder tool that is meant to help with map creation
-* Almost-blank map where the player avatar can move
+### Map Builder Tool
+  * A tool for building a game map using sprites.
+  * Toggle into "Wall Mode" to define impassable cells on the map.
+  * Clicking the "Save and Download" button will open a preview modal showing a grid-less version of the map.
+  * In the preview modal, enter a name and click the "Download" link to save a png image of the map on your computer.
+  * For now, you'll need to go into the redux devtools to get a copy of the grid object data which contains dimensions, coordinates, sprite, and tile data for the map.
+### Temporary Stage
+  * Almost-blank map where the player avatar can move
 
 ## Future Features
 * Overworld engine
