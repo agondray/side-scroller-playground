@@ -144,10 +144,7 @@ class MapBuilder extends Component {
     this.update();
   }
 
-  handleCanvasClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
+  handleCanvasClick() {
     const {
       hx,
       hy,

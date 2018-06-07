@@ -20,7 +20,7 @@ const MapTile = ({ code, isSelected, handleTileClick }) => {
         <div className={styles[name]} />
       </span>
     ),
-    ground: (<div className={styles[name]} />),
+    object: (<div className={styles[name]} />),
   };
 
   return (

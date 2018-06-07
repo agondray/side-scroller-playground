@@ -2,12 +2,10 @@
   background: #eee;
   border: 5px solid #0fc;
   color: #fff;
-  height: 500px;
   left: 50%;
-  padding: 10px;
+  padding: 50px 10px 10px;
   position: absolute;
   top: 8%;
-  width: 300px;
   z-index: 10;
 }
 
@@ -23,6 +21,7 @@
   border: 2px solid #000;
   border-radius: 50%;
   color: #000;
+  display: block;
   font-size: 30px;
   height: 40px;
   position: absolute;
@@ -30,4 +29,13 @@
   text-align: center;
   top: 10px;
   width: 40px;
+}
+
+.tileTypeLabel {
+  color: #000;
+}
+
+.menuWrapper {
+  display: inline-block;
+  margin-right: 16px;
 }

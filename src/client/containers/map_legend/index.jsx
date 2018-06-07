@@ -34,6 +34,8 @@ class MapLegend extends Component {
     this.renderMapTiles = this.renderMapTiles.bind(this);
     this.handleToggleClick = this.handleToggleClick.bind(this);
     this.renderContent = this.renderContent.bind(this);
+    this.floorTiles = Object.keys(spriteData).filter(key => (spriteData[key].type === 'floor'));
+    this.objectTiles = Object.keys(spriteData).filter(key => (spriteData[key].type === 'object'));
   }
 
   handleTileClick(tileData) {
@@ -47,9 +49,21 @@ class MapLegend extends Component {
     this.setState({ collapsed: !this.state.collapsed });
   }
 
-  renderMapTiles() {
+  renderMapTiles(type = 'floor') {
     const { selectedTile: { tileCode } } = this.props;
-    return Object.keys(spriteData).map(key => (
+    const { floorTiles, objectTiles } = this;
+    if (type === 'object') {
+      return objectTiles.map(key => (
+        <MapTile
+          key={key}
+          code={key}
+          isSelected={tileCode && tileCode === key}
+          handleTileClick={this.handleTileClick}
+        />
+      ));
+    }
+
+    return floorTiles.map(key => (
       <MapTile
         key={key}
         code={key}
@@ -67,7 +81,14 @@ class MapLegend extends Component {
     return (
       <div>
         <ToggleButton handleClick={this.handleToggleClick} />
-        {this.renderMapTiles()}
+        <div className={styles.menuWrapper}>
+          <h4 className={styles.tileTypeLabel}>Floor Tiles</h4>
+          {this.renderMapTiles()}
+        </div>
+        <div className={styles.menuWrapper}>
+          <h4 className={styles.tileTypeLabel}>Object Tiles</h4>
+          {this.renderMapTiles('object')}
+        </div>
       </div>
     );
   }
