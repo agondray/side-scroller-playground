@@ -77,7 +77,7 @@ export const spriteData = {
   },
   TILE_07: {
     name: 'sandPatch',
-    type: 'object',
+    type: 'envObject',
     spriteParams: {
       dx: 0,
       dy: 64,
@@ -89,7 +89,7 @@ export const spriteData = {
   },
   TILE_08: {
     name: 'tinyLake',
-    type: 'object',
+    type: 'envObject',
     spriteParams: {
       dx: 480,
       dy: 448,
@@ -112,7 +112,7 @@ export const tileSpecs = {
       height: 32,
       tileRows: 3,
     },
-    object: {
+    envObject: {
       height: 96,
       tileRows: 1,
     },

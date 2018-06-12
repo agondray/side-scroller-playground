@@ -94,17 +94,20 @@ export const drawPaintedCells = ({
     const { cellSize } = gridObject[key];
 
     if (gridObject[key].tileData) {
-      const { tileData: { tileCode, type } } = gridObject[key];
-      const { spriteParams } = spriteData[tileCode];
-      const drawFloorSpriteParams = {
-        type,
-        context,
-        spriteMapImage,
-        hx,
-        hy,
-        ...spriteParams,
-      };
-      drawFloorTile({ drawFloorSpriteParams });
+      const { tileData } = gridObject[key];
+      Object.keys(tileData).map(type => (tileData[type]))
+        .forEach(({ tileCode, type }) => {
+          const { spriteParams } = spriteData[tileCode];
+          const drawFloorSpriteParams = {
+            type,
+            context,
+            spriteMapImage,
+            hx,
+            hy,
+            ...spriteParams,
+          };
+          drawFloorTile({ drawFloorSpriteParams });
+        });
     }
 
     if (gridObject[key].cellType && showImpassableHighlights) {
