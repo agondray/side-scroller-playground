@@ -84,13 +84,14 @@ class MapBuilder extends Component {
   asyncUpdateGridObject(params) {
     const { cellKey, selectedTile, selectedCellType } = params;
     const { dispatch, gridObject } = this.props;
-    const { tileData } = gridObject[cellKey];
+    const { tileData } = gridObject[cellKey] || {};
+    const formattedSelectedTile = selectedTile ? { [selectedTile.type]: selectedTile } : {};
 
     return new Promise((resolve) => {
       dispatch(updateGridObject({
         cellKey,
         data: {
-          tileData: selectedTile || tileData,
+          tileData: { ...tileData, ...formattedSelectedTile },
           cellType: selectedCellType,
         },
       }));

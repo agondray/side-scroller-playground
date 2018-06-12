@@ -35,7 +35,7 @@ class MapLegend extends Component {
     this.handleToggleClick = this.handleToggleClick.bind(this);
     this.renderContent = this.renderContent.bind(this);
     this.floorTiles = Object.keys(spriteData).filter(key => (spriteData[key].type === 'floor'));
-    this.objectTiles = Object.keys(spriteData).filter(key => (spriteData[key].type === 'object'));
+    this.objectTiles = Object.keys(spriteData).filter(key => (spriteData[key].type === 'envObject'));
   }
 
   handleTileClick(tileData) {
@@ -52,7 +52,7 @@ class MapLegend extends Component {
   renderMapTiles(type = 'floor') {
     const { selectedTile: { tileCode } } = this.props;
     const { floorTiles, objectTiles } = this;
-    if (type === 'object') {
+    if (type === 'envObject') {
       return objectTiles.map(key => (
         <MapTile
           key={key}
@@ -87,7 +87,7 @@ class MapLegend extends Component {
         </div>
         <div className={styles.menuWrapper}>
           <h4 className={styles.tileTypeLabel}>Object Tiles</h4>
-          {this.renderMapTiles('object')}
+          {this.renderMapTiles('envObject')}
         </div>
       </div>
     );
