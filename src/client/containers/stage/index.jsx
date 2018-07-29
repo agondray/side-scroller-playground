@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 import PlayerCharacter from '@entities/player_character';
 import Overworld from '@engines/overworld';
-import { addActiveKey, removeActiveKey } from '@dux/player_character';
+import { updateActiveKeys } from '@dux/player_character';
 import { updateGameMap } from '@dux/game_map';
 import { allowedKeys } from '@utils/key_codes';
 import { assignKey, removeKey } from '@utils/keypress_handlers';
@@ -124,6 +124,7 @@ class Stage extends Component {
   }
 
   update() {
+    console.log('running update...')
     const { context, player, overworld } = this.state;
 
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -165,7 +166,7 @@ class Stage extends Component {
     const { activeKeys, dispatch } = this.props;
     const activeKey = assignKey(activeKeys, keyCode);
 
-    dispatch(addActiveKey(activeKey));
+    dispatch(updateActiveKeys(activeKey));
   }
   //
   handleKeyUp(e) {
@@ -173,10 +174,11 @@ class Stage extends Component {
     const { activeKeys, dispatch } = this.props;
     const activeKey = removeKey(activeKeys, keyCode);
 
-    dispatch(removeActiveKey(activeKey));
+    dispatch(updateActiveKeys(activeKey));
   }
 
   handleAnimationFrameStop() {
+    console.log('STAGE DEBUG -- cancelling animation frame')
     cancelAnimationFrame(this.state.animation);
     this.setState({ animation: null, gameStarted: false });
   }
