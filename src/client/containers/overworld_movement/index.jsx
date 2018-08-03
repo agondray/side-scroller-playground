@@ -14,8 +14,8 @@ import styles from './overworld_movement.scss';
 // #here - pass to <Canvas /> component as prop
 const sampleMapSource = require('@images/sample_maps/sample_map_1.png');
 // move to helper
-const pixelToNumber = (pxString) => (parseInt(pxString.replace('px', '')));
-const numberToPixel = (pxNubmer) => (`${pxNubmer}px`);
+// const pixelToNumber = (pxString) => (parseInt(pxString.replace('px', '')));
+// const numberToPixel = (pxNubmer) => (`${pxNubmer}px`);
 const velocity = 5;
 
 class OverworldMovement extends Component {
@@ -93,8 +93,9 @@ class OverworldMovement extends Component {
   render() {
     const { gameMap } = this.props;
     const mapPosition = {
-      left: `${gameMap.x}px`,
-      top: `${gameMap.y}px`,
+      // left: `${gameMap.x}px`,
+      // top: `${gameMap.y}px`,
+      backgroundPosition: `${gameMap.x}px ${gameMap.y}px`,
     };
 
     return (
@@ -106,18 +107,20 @@ class OverworldMovement extends Component {
         onKeyUp={this.handleKeypress}
       >
         <OverworldCamera>
-          <img
-            className={styles.sampleMap}
-            style={mapPosition}
-            id="sampleMap"
-            src={sampleMapSource}
-            alt="sample map"
-          />
+          <div style={mapPosition} className={styles.mapBackground} />
         </OverworldCamera>
       </div>
     );
   }
 }
+
+{/* <img
+  className={styles.sampleMap}
+  style={mapPosition}
+  id="sampleMap"
+  src={sampleMapSource}
+  alt="sample map"
+/> */}
 
 OverworldMovement.propTypes = {
   dispatch: PropTypes.func.isRequired,

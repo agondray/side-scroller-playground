@@ -2,3 +2,13 @@
   position: absolute;;
   z-index: 0;
 }
+
+.mapBackground {
+  background: url('src/client/assets/images/sample_maps/sample_map_1.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 1152px;
+  // position: absolute;
+  width: 1152px;
+  z-index: 0;
+}
