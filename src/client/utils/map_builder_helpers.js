@@ -38,7 +38,7 @@ export const generateGridObject = (mapMatrix) => {
 };
 
 export const highlightCell = ({ context, tileSize, hx, hy, cellHighlightColor }) => {
-  context.fillStyle = cellHighlightColor;
+  context.fillStyle = cellHighlightColor; // #here no-param-reassign
   context.fillRect(
     hx,
     hy,

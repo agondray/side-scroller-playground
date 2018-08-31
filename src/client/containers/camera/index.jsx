@@ -3,22 +3,32 @@ import PropTypes from 'prop-types';
 
 import styles from './overworld_camera.scss';
 
-class OverworldCamera extends Component {
+class Camera extends Component {
   constructor(props) {
     super(props);
 
     // render player character in middle
     // expect player character props
+    this.foo = this.foo.bind(this);
+  }
+
+  // #here - update player position in state
+  foo() {
+    const bar = this.props;
+    return null;
   }
 
   render() {
     return (
       <div className={styles.camera}>
-        <h1 className={styles.player}>x</h1>
         {this.props.children}
       </div>
-    )
+    );
   }
 }
 
-export default OverworldCamera;
+Camera.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+export default Camera;
