@@ -2,8 +2,8 @@
 
 // context.drawImage notes:
 // source image;
-//    dx - top left x of source image
-//    dy - top left y of source image
+//    dx - place top left x of source image here
+//    dy - place top left y of source image here
 //    dw - sprite width
 //    dh - sprite height
 // to be painted on canvas:

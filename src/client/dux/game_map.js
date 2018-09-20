@@ -21,8 +21,8 @@ const initialState = {
 };
 
 export default function gameMapReducer(state = initialState, action = {}) {
-  const { payload } = action;
-  switch (action.type) {
+  const { payload, type } = action;
+  switch (type) {
     case UPDATE_GAME_MAP: {
       return update(state, { $merge: payload });
     }

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import styles from './canvas.scss';
 
 const Canvas = ({
-  style,
+  canvasStyle,
   canvasRef,
   width,
   height,
@@ -18,7 +18,7 @@ const Canvas = ({
 }) => (
   <canvas
     className={styles.canvas}
-    style={style}
+    style={canvasStyle}
     ref={canvasRef}
     height={height}
     width={width}
@@ -33,7 +33,8 @@ const Canvas = ({
 );
 
 Canvas.propTypes = {
-  style: PropTypes.shape(),
+  canvasRef: PropTypes.func.isRequired,
+  canvasStyle: PropTypes.shape(),
   height: PropTypes.number,
   onKeyDown: PropTypes.func,
   onKeyUp: PropTypes.func,
@@ -42,12 +43,11 @@ Canvas.propTypes = {
   onMouseUp: PropTypes.func,
   onMouseMove: PropTypes.func,
   onMouseOver: PropTypes.func,
-  canvasRef: PropTypes.func.isRequired,
   width: PropTypes.number,
 };
 
 Canvas.defaultProps = {
-  style: { background: '#ccc' },
+  canvasStyle: { background: '#ccc' },
   width: 1000,
   height: 1000,
   onKeyDown: () => (null),

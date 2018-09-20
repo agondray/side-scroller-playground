@@ -8,7 +8,7 @@ const buildGridArray = gridData => (
       y: sy,
       row: transformToCoordinate({ cellSize, position: sy }), // y == row
       col: transformToCoordinate({ cellSize, position: sx }), // x == col
-      impassable,
+      meta: { impassable, cellSize },
     };
   })
 );

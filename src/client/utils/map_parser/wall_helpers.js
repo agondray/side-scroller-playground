@@ -1,6 +1,4 @@
-const findAllWalls = cells => (
-  cells.filter(cell => (cell.impassable))
-);
+const findAllWalls = cells => cells.filter(cell => cell.meta.impassable);
 
 const buildWallObject = walls => (
   walls.reduce((acc, wall) => {

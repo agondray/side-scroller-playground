@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-import styles from './overworld_camera.scss';
+import styles from './camera.scss';
 
 class Camera extends Component {
   constructor(props) {
@@ -19,8 +19,9 @@ class Camera extends Component {
   }
 
   render() {
+    const { dimensions } = this.props;
     return (
-      <div className={styles.camera}>
+      <div style={{ ...dimensions }} className={styles.camera}>
         {this.props.children}
       </div>
     );
@@ -29,6 +30,12 @@ class Camera extends Component {
 
 Camera.propTypes = {
   children: PropTypes.node.isRequired,
+  dimensions: PropTypes.shape({
+    cameraWidth: PropTypes.string,
+    cameraHeight: PropTypes.string,
+    halfCameraWidth: PropTypes.string,
+    halfCameraHeight: PropTypes.string,
+  }).isRequired,
 };
 
 export default Camera;
