@@ -19,6 +19,7 @@ import { sampleMap_1 as sampleMap } from '@utils/sample_map_data/sample_map_1';
 import { buildGridArray, wallHelpers } from '@utils/map_parser';
 import { getPlayerCoordinates } from '@utils/player_position';
 import { gameMapSpecs } from '@utils/constants';
+import { createImage } from '@utils/image_helpers';
 // import buildGridArray from '@utils/map_parser/build_grid_array';
 
 import styles from './overworld.scss';
@@ -36,6 +37,7 @@ const velocity = 5;
 const playerSize = 50;
 
 const spriteMapSource = require('@images/sample_maps/sample_map_1.png');
+const playerSprite = require('@images/swordsman.png');
 
 class OverworldContainer extends Component {
   constructor(props) {
@@ -45,14 +47,14 @@ class OverworldContainer extends Component {
       animationFramesId: null,
       // #here think of a better name!!! ZOMG!
       // move to duck / config constant
-      playerContainerData: {
+      playerContainerData: { // #static!
         height: playerSize,
         width: playerSize,
         verticalHalf: playerSize / 2,
         horizontalHalf: playerSize / 2,
         spatialDetectionCellRadius: 1,
       },
-      cameraContainerData: {
+      cameraContainerData: { // #static!
         cameraWidth: 640,
         cameraHeight: 480,
         halfCameraWidth: 320,
@@ -67,6 +69,8 @@ class OverworldContainer extends Component {
         height: 0,
       },
       ctx: null,
+      mapImage: null,
+      playerSprite: null,
     };
 
     this.initializeCanvasContext = this.initializeCanvasContext.bind(this);
@@ -77,6 +81,7 @@ class OverworldContainer extends Component {
     this.dispatchUpdateMapPosition = this.dispatchUpdateMapPosition.bind(this);
     this.updateContainer = this.updateContainer.bind(this);
     this.initializeMap = this.initializeMap.bind(this);
+    this.initializePlayerSprite = this.initializePlayerSprite.bind(this);
     this.collisionDetection = this.collisionDetection.bind(this);
     this.updateCanvas = this.updateCanvas.bind(this);
 
@@ -88,8 +93,13 @@ class OverworldContainer extends Component {
     const containerDiv = document.getElementById('overworldMovementContainer');
     containerDiv.focus();
 
+    if (!this.state.mapImage) {
+      this.initializeMap();
+    }
+    if (!this.state.playerSprite) {
+      this.initializePlayerSprite();
+    }
     this.initializeCanvasContext();
-    this.initializeMap();
     this.kickoffAnimationFrames();
   }
 
@@ -114,9 +124,8 @@ class OverworldContainer extends Component {
 
   updateContainer() {
     // this.collisionDetection();
-    this.drawMapInCanvas();
-    this.updateCanvas();
     this.dispatchUpdateMapPosition();
+    this.updateCanvas();
   }
 
   initializeMap() {
@@ -125,6 +134,8 @@ class OverworldContainer extends Component {
     const { findAllWalls, buildWallObject } = wallHelpers;
     const wallsArray = findAllWalls(mapArray);
     const wallsObject = buildWallObject(wallsArray);
+
+    this.setState({ mapImage: createImage(spriteMapSource) })
 
 
     dispatch(updateCellSize(96)); // #here - temporary constant
@@ -135,23 +146,47 @@ class OverworldContainer extends Component {
     // temporary... need better logic to determine starting point on map
     dispatch(updateGameMap({ x: -200, y: -100 }));
 
-    // #here remove!!!
+    // #here remove!!! #pcrectcall
+    // currently draws spatial detection radius
     this.getPcRect();
   }
 
+  initializePlayerSprite() {
+    this.setState({ playerSpriteSheet: createImage(playerSprite) });
+  }
+
   drawMapInCanvas() {
-    const { ctx } = this.state;
-    // (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-    const mapImage = new Image();
-    mapImage.src = spriteMapSource;
+    // mov emapImage to store!
+    const { ctx, mapImage } = this.state;
 
     ctx.drawImage(mapImage, 0, 0, 1152, 1152);
   }
 
+  // #updatecanvas #here
   updateCanvas() {
-    const { ctx } = this.state;
+    const { ctx, playerSpriteSheet } = this.state;
+
+    // player on canvas
+    const map = document.getElementById('overworldCanvas');
+    const pc = document.getElementById('playerKarakter');
+
+    const mapOffsetLeft = map.offsetLeft;
+    const mapOffsetTop = map.offsetTop;
+    const rectX = mapOffsetLeft <= 0 ?
+      Math.abs(mapOffsetLeft) + pc.offsetLeft :
+      pc.offsetLeft - map.offsetLeft;
+    const rectY = mapOffsetTop <= 0 ?
+      Math.abs(mapOffsetTop) + pc.offsetTop :
+      pc.offsetTop - map.offsetTop;
+
+    this.drawMapInCanvas();
+    ctx.fillStyle = 'yellow';
+    ctx.fillRect(rectX, rectY, playerSize, playerSize);
+    ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, rectX, rectY, playerSize, playerSize);
+
+
     ctx.save();
-    this.setState({ ctx }, () => { console.log('context in state:', this.state.ctx); });
+    // this.setState({ ctx });
   }
 
   handleKeypress(e) {
@@ -231,7 +266,6 @@ class OverworldContainer extends Component {
     const mapPosition = {
       // #here move default styles to stylesheet
       background: '#ccc',
-      position: 'absolute',
       // backgroundPosition: `${gameMap.x}px ${gameMap.y}px`,
       left: `${gameMap.x}px`,
       top: `${gameMap.y}px`,
@@ -263,27 +297,30 @@ class OverworldContainer extends Component {
     };
 
     return (
-      <div
-        tabIndex="0"
-        role="presentation"
-        id="overworldMovementContainer"
-        onKeyDown={this.handleKeypress}
-        onKeyUp={this.handleKeypress}
-      >
-        <Camera dimensions={cameraDimensions}>
-          {/* #here insert player character component here */}
-          <div id="spatialFieldStyles" style={spatialFieldStyles} className={styles.spatialField} />
-          <h1 id="playerKarakter" style={playerStyles} className={styles.playerCharacter}>x</h1>
-          {/* <div style={mapPosition} className={styles.mapBackground} /> */}
-          <Canvas
-            canvasStyle={mapPosition}
-            canvasRef={(c) => { this.canvas = c; }}
-            height={gameMapSpecs.canvasWidth}
-            width={gameMapSpecs.canvasHeight}
-          />
-          {/* onKeyDown={}
-          onKeyUp={} */}
-        </Camera>
+      <div>
+        <button onClick={this.cancelAnimationFrame}>Stop Animation Frames</button>
+        <div
+          tabIndex="0"
+          role="presentation"
+          id="overworldMovementContainer"
+          onKeyDown={this.handleKeypress}
+          onKeyUp={this.handleKeypress}
+        >
+          <Camera dimensions={cameraDimensions}>
+            {/* #here insert player character component here */}
+            <div id="spatialFieldStyles" style={spatialFieldStyles} className={styles.spatialField} />
+            <h1 id="playerKarakter" style={playerStyles} className={styles.playerCharacter}></h1>
+            {/* <div style={mapPosition} className={styles.mapBackground} /> */}
+            <Canvas
+              canvasStyle={mapPosition}
+              canvasRef={(c) => { this.canvas = c; }}
+              height={gameMapSpecs.canvasWidth}
+              width={gameMapSpecs.canvasHeight}
+            />
+            {/* onKeyDown={}
+            onKeyUp={} */}
+          </Camera>
+        </div>
       </div>
     );
   }

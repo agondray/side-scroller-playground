@@ -17,6 +17,7 @@ const Canvas = ({
   onMouseOver,
 }) => (
   <canvas
+    id="overworldCanvas"
     className={styles.canvas}
     style={canvasStyle}
     ref={canvasRef}

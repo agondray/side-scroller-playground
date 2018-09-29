@@ -18,6 +18,10 @@ const initialState = {
   x: 96,
   y: 96,
   cellSize: 0,
+  playerCoordinates: { // row and column cartesian coordinates
+    x: null,
+    y: null,
+  },
 };
 
 export default function gameMapReducer(state = initialState, action = {}) {
