@@ -1,5 +1,4 @@
-export const getPlayerCoordinates = (data) => {
-  debugger
-}
-
-// export default { getPlayerCoordinates };
+// export const getPlayerCoordinates = (data) => {
+// }
+//
+// // export default { getPlayerCoordinates };

@@ -16,25 +16,17 @@ import {
 import { assignKey, removeKey } from '@utils/keypress_handlers';
 import { allowedKeys } from '@utils/key_codes';
 import { sampleMap_1 as sampleMap } from '@utils/sample_map_data/sample_map_1';
-import { buildGridArray, wallHelpers } from '@utils/map_parser';
-import { getPlayerCoordinates } from '@utils/player_position';
+import { buildGridArray, wallHelpers, transformToCoordinate } from '@utils/map_parser';
+// import { getPlayerCoordinates } from '@utils/player_position';
 import { gameMapSpecs } from '@utils/constants';
 import { createImage } from '@utils/image_helpers';
-// import buildGridArray from '@utils/map_parser/build_grid_array';
 
 import styles from './overworld.scss';
 
-// #here - pass to <Canvas /> component as prop
-// const sampleMapSource = require('@images/sample_maps/sample_map_1.png');
-// move to helper
-// const pixelToNumber = (pxString) => (parseInt(pxString.replace('px', '')));
-// const numberToPixel = (pxNubmer) => (`${pxNubmer}px`);
-
-// #here store in config file..
+// #here temporary - move to a config or constants file
 const velocity = 5;
-
-// #here temporary...
 const playerSize = 50;
+const cellSize = sampleMap['0_0'].cellSize // 96px
 
 const spriteMapSource = require('@images/sample_maps/sample_map_1.png');
 const playerSprite = require('@images/swordsman.png');
@@ -86,7 +78,7 @@ class OverworldContainer extends Component {
     this.updateCanvas = this.updateCanvas.bind(this);
 
     // #here move this
-    this.getPcRect = this.getPcRect.bind(this);
+    this.setSpatialBoxData = this.setSpatialBoxData.bind(this);
   }
 
   componentDidMount() {
@@ -138,7 +130,7 @@ class OverworldContainer extends Component {
     this.setState({ mapImage: createImage(spriteMapSource) })
 
 
-    dispatch(updateCellSize(96)); // #here - temporary constant
+    dispatch(updateCellSize(cellSize)); // #here - temporary constant
     dispatch(setMapArray(mapArray));
     dispatch(updateWalls(wallsObject));
 
@@ -148,7 +140,7 @@ class OverworldContainer extends Component {
 
     // #here remove!!! #pcrectcall
     // currently draws spatial detection radius
-    this.getPcRect();
+    this.setSpatialBoxData();
   }
 
   initializePlayerSprite() {
@@ -167,6 +159,9 @@ class OverworldContainer extends Component {
     const { ctx, playerSpriteSheet } = this.state;
 
     // player on canvas
+    // move logic to own function!!!
+    // this function should only care about updating the canvas states
+    const { row: stateRow, col: stateCol } = this.props.gameMap.playerCoordinates;
     const map = document.getElementById('overworldCanvas');
     const pc = document.getElementById('playerKarakter');
 
@@ -178,12 +173,25 @@ class OverworldContainer extends Component {
     const rectY = mapOffsetTop <= 0 ?
       Math.abs(mapOffsetTop) + pc.offsetTop :
       pc.offsetTop - map.offsetTop;
+    const pRow = transformToCoordinate({ cellSize, position: rectY });
+    const pCol = transformToCoordinate({ cellSize, position: rectX });
+    const playerCoordinates = {
+      x: rectX,
+      y: rectY,
+      row: pRow,
+      col: pCol,
+    };
 
     this.drawMapInCanvas();
+
     ctx.fillStyle = 'yellow';
     ctx.fillRect(rectX, rectY, playerSize, playerSize);
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, rectX, rectY, playerSize, playerSize);
 
+    // temporary - to prevent unnecessary updates when tracking player position
+    if (pRow !== stateRow || pCol !== stateCol) {
+      this.props.dispatch(updateGameMap({ playerCoordinates }));
+    }
 
     ctx.save();
     // this.setState({ ctx });
@@ -234,9 +242,9 @@ class OverworldContainer extends Component {
     this.kickoffAnimationFrames();
   }
 
-  // #here -- move to player character component #pcrect
+  // #here -- move to player character component #pcrect #spatialboxdata
   // calculates size and location of spatial detection field centered around player
-  getPcRect() {
+  setSpatialBoxData() {
     const pc = document.getElementById('playerKarakter');
     const pcTop = pc.offsetTop;
     const pcLeft = pc.offsetLeft;
@@ -251,7 +259,7 @@ class OverworldContainer extends Component {
       offsetLeft: spatialOffsetLeft,
       width: spatialBoxSize,
       height: spatialBoxSize,
-      cellSize: spatialBoxSize / 3,
+      // cellSize: spatialBoxSize / 3,
     };
 
     this.setState({

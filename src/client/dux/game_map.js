@@ -21,6 +21,8 @@ const initialState = {
   playerCoordinates: { // row and column cartesian coordinates
     x: null,
     y: null,
+    row: null,
+    col: null,
   },
 };
 
