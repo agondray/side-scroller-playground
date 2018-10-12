@@ -19,8 +19,10 @@ const initialState = {
   y: 96,
   cellSize: 0,
   playerCoordinates: { // row and column cartesian coordinates
-    x: null,
-    y: null,
+    tlX: null,
+    tlY: null,
+    centerX: null,
+    centerY: null,
     row: null,
     col: null,
   },

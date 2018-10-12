@@ -165,6 +165,7 @@ class OverworldContainer extends Component {
     const map = document.getElementById('overworldCanvas');
     const pc = document.getElementById('playerKarakter');
 
+    const halfPlayerSize = playerSize / 2;
     const mapOffsetLeft = map.offsetLeft;
     const mapOffsetTop = map.offsetTop;
     const rectX = mapOffsetLeft <= 0 ?
@@ -173,13 +174,17 @@ class OverworldContainer extends Component {
     const rectY = mapOffsetTop <= 0 ?
       Math.abs(mapOffsetTop) + pc.offsetTop :
       pc.offsetTop - map.offsetTop;
-    const pRow = transformToCoordinate({ cellSize, position: rectY });
-    const pCol = transformToCoordinate({ cellSize, position: rectX });
+    const centerX = rectX + halfPlayerSize; // column
+    const centerY = rectY + halfPlayerSize; // row
+    const pRow = transformToCoordinate({ cellSize, position: rectY }); // y-coord
+    const pCol = transformToCoordinate({ cellSize, position: rectX }); // x-coord
     const playerCoordinates = {
-      x: rectX,
-      y: rectY,
-      row: pRow,
-      col: pCol,
+      tlX: rectX,
+      tlY: rectY,
+      centerX,
+      centerY,
+      row: pRow, // calculated from center of character square
+      col: pCol, // calculated from center of character square
     };
 
     this.drawMapInCanvas();
@@ -188,12 +193,75 @@ class OverworldContainer extends Component {
     ctx.fillRect(rectX, rectY, playerSize, playerSize);
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, rectX, rectY, playerSize, playerSize);
 
-    // temporary - to prevent unnecessary updates when tracking player position
-    if (pRow !== stateRow || pCol !== stateCol) {
-      this.props.dispatch(updateGameMap({ playerCoordinates }));
+    // #spatial detection logic
+    // initial idea - 8 directions represented as blocks forming a 3x3 square around player
+    const spatialFieldCoordStrings = [
+      `${pCol}_${pRow - 1}`, // top
+      `${pCol + 1}_${pRow - 1}`, // top-right
+      `${pCol + 1}_${pRow}`, // right
+      `${pCol + 1}_${pRow + 1}`, // bottom-right
+      `${pCol}_${pRow + 1}`, // bottom
+      `${pCol - 1}_${pRow + 1}`, // bottom-left
+      `${pCol - 1}_${pRow}`, // left
+      `${pCol - 1}_${pRow - 1}`, // top-left
+    ];
+
+    // WIP - experiment with simplified ray casting to find walls
+    // need 8 rays for each direction
+    // each ray will be a vector of the same "length" or "distance" from the character's center
+    // goal: calculate
+
+    const calcHypotenuseEndpoint = (sx, sy) => {
+      // from pythagorean theorem, use vector equation:
+      //  V = sqrt((x2 - x1)^2 + (y2 - y1)^2)
+      //  (y2 - y1)^2 = (x2 - x1)^2 - v^2
+      //    y2 = sqrt((x2 - x1)^2 - v^2) + y1
+      //  x2 = sqrt((y2 - y1)^2 - v^2) + x1
+      //  x2 = sqrt((sqrt((x2 - x1)^2 - v^2) + y1)^2 - v^2) + x1 <-- solve this, then use x2's value to get y2...
+      //
+      // have starting point and hypotenuse length
+      // need coords of hyp endpoint
+
+      // get length of a when sx has not changed
+      // get length of b when xy has not changed
+
+      // math...
     }
 
+    const generateSpatialDetectionRays = (centerX, centerY, distanceFromObjectCenter) => {
+      // use pseudo-raycasting to detect walls at n distance from object's center coordinates
+      //   e.g. top raycast detection:
+      //     * project a line from the object's center to n `distance`
+      //     * at n, convert coordinate to col/row string
+      // return array containing raycast endponts for all 8 directions
+      //  each element should be a coordinate string `col_row` (representing game map x_y)
+
+      // const x = transformToCoordinate({ cellSize, centerX }); // x-coord
+      // const y = transformToCoordinate({ cellSize, centerY }); // y-coord
+      const top = `${col}_${row}`;
+      return [top, topRight, right, bottomRight, bottom, bottomLeft, Left, topLeft];
+    }
+    // use spatialDetectionRayCoords to check if each coord exists as a key in `walls`
+    // const spatialDetectionRayCoords = generateSpatialDetectionRays(1000);
+
+
+    const detectWalls = () => (
+      spatialFieldCoordStrings.filter(coord => (
+        this.props.gameMap.walls.hasOwnProperty(coord)
+      ))
+    );
+
+    // console.log('walls detected: ', detectWalls());
+
     ctx.save();
+
+    // temporary - to prevent unnecessary state updates when tracking player position
+    if (pRow !== stateRow || pCol !== stateCol) {
+      this.props.dispatch(updateGameMap({
+        playerCoordinates,
+        detectedWalls: detectWalls(),
+      }));
+    }
     // this.setState({ ctx });
   }
 
