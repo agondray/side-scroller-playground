@@ -19,13 +19,14 @@ const initialState = {
   y: 96,
   cellSize: 0,
   playerCoordinates: { // row and column cartesian coordinates
-    tlX: null,
-    tlY: null,
+    tlX: null, // top-left x
+    tlY: null, // top-left y
     centerX: null,
     centerY: null,
     row: null,
     col: null,
   },
+  detectedWalls: [],
 };
 
 export default function gameMapReducer(state = initialState, action = {}) {

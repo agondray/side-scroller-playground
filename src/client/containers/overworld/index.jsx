@@ -20,6 +20,7 @@ import { buildGridArray, wallHelpers, transformToCoordinate } from '@utils/map_p
 // import { getPlayerCoordinates } from '@utils/player_position';
 import { gameMapSpecs } from '@utils/constants';
 import { createImage } from '@utils/image_helpers';
+import { drawPaintedCells, highlightCell } from '@utils/map_builder_helpers';
 
 import styles from './overworld.scss';
 
@@ -30,6 +31,30 @@ const cellSize = sampleMap['0_0'].cellSize // 96px
 
 const spriteMapSource = require('@images/sample_maps/sample_map_1.png');
 const playerSprite = require('@images/swordsman.png');
+
+
+const { findAllWalls, buildWallObject } = wallHelpers;
+const mapArray = buildGridArray(sampleMap);
+const wallsArray = findAllWalls(mapArray);
+const wallsObject = buildWallObject(wallsArray);
+
+const highlightWalls = (ctx) => {
+  const wallCoords = Object.keys(wallsObject);
+
+  wallCoords.forEach((coordString) => {
+    const hx = wallsObject[coordString].x;
+    const hy = wallsObject[coordString].y;
+
+
+    highlightCell({
+      context: ctx,
+      tileSize: cellSize,
+      hx,
+      hy,
+      cellHighlightColor: 'rgba(255, 0, 0, 0.5)',
+    });
+  });
+};
 
 class OverworldContainer extends Component {
   constructor(props) {
@@ -63,6 +88,14 @@ class OverworldContainer extends Component {
       ctx: null,
       mapImage: null,
       playerSprite: null,
+      wallsHighlighted: false,
+      spatialFieldCoordStrings: [],
+      playerTLCoords: {
+        x: null,
+        y: null,
+        rectX: null,
+        rectY: null,
+      },
     };
 
     this.initializeCanvasContext = this.initializeCanvasContext.bind(this);
@@ -74,8 +107,8 @@ class OverworldContainer extends Component {
     this.updateContainer = this.updateContainer.bind(this);
     this.initializeMap = this.initializeMap.bind(this);
     this.initializePlayerSprite = this.initializePlayerSprite.bind(this);
-    this.collisionDetection = this.collisionDetection.bind(this);
     this.updateCanvas = this.updateCanvas.bind(this);
+    this.toggleWallHighlights = this.toggleWallHighlights.bind(this);
 
     // #here move this
     this.setSpatialBoxData = this.setSpatialBoxData.bind(this);
@@ -91,6 +124,8 @@ class OverworldContainer extends Component {
     if (!this.state.playerSprite) {
       this.initializePlayerSprite();
     }
+
+    this.props.dispatch(updateActiveKeys({}));
     this.initializeCanvasContext();
     this.kickoffAnimationFrames();
   }
@@ -114,18 +149,25 @@ class OverworldContainer extends Component {
     this.setState({ animationFramesId: null });
   }
 
+  // #updatecontainer
   updateContainer() {
     // this.collisionDetection();
-    this.dispatchUpdateMapPosition();
+
+    const { keysPressed: { activeKeys } } = this.props;
+
+    if (activeKeys) {
+      this.dispatchUpdateMapPosition();
+    }
+
     this.updateCanvas();
   }
 
   initializeMap() {
     const { dispatch } = this.props;
-    const mapArray = buildGridArray(sampleMap);
-    const { findAllWalls, buildWallObject } = wallHelpers;
-    const wallsArray = findAllWalls(mapArray);
-    const wallsObject = buildWallObject(wallsArray);
+    // const mapArray = buildGridArray(sampleMap);
+    // const { findAllWalls, buildWallObject } = wallHelpers;
+    // const wallsArray = findAllWalls(mapArray);
+    // const wallsObject = buildWallObject(wallsArray);
 
     this.setState({ mapImage: createImage(spriteMapSource) })
 
@@ -149,9 +191,14 @@ class OverworldContainer extends Component {
 
   drawMapInCanvas() {
     // mov emapImage to store!
-    const { ctx, mapImage } = this.state;
+    const { ctx, mapImage, wallsHighlighted } = this.state;
 
     ctx.drawImage(mapImage, 0, 0, 1152, 1152);
+
+    // #ctxhighlight
+    if (wallsHighlighted) {
+      highlightWalls(ctx);
+    }
   }
 
   // #updatecanvas #here
@@ -176,8 +223,8 @@ class OverworldContainer extends Component {
       pc.offsetTop - map.offsetTop;
     const centerX = rectX + halfPlayerSize; // column
     const centerY = rectY + halfPlayerSize; // row
-    const pRow = transformToCoordinate({ cellSize, position: rectY }); // y-coord
-    const pCol = transformToCoordinate({ cellSize, position: rectX }); // x-coord
+    const pRow = transformToCoordinate({ cellSize, position: centerY }); // y-coord
+    const pCol = transformToCoordinate({ cellSize, position: centerX }); // x-coord
     const playerCoordinates = {
       tlX: rectX,
       tlY: rectY,
@@ -189,6 +236,7 @@ class OverworldContainer extends Component {
 
     this.drawMapInCanvas();
 
+    // #playersprite
     ctx.fillStyle = 'yellow';
     ctx.fillRect(rectX, rectY, playerSize, playerSize);
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, rectX, rectY, playerSize, playerSize);
@@ -206,12 +254,24 @@ class OverworldContainer extends Component {
       `${pCol - 1}_${pRow - 1}`, // top-left
     ];
 
+    this.setState({
+      spatialFieldCoordStrings,
+      playerTLCoords: {
+        x: pCol,
+        y: pRow,
+        rectX,
+        rectY,
+        centerX,
+        centerY,
+      },
+    });
+
     // WIP - experiment with simplified ray casting to find walls
     // need 8 rays for each direction
     // each ray will be a vector of the same "length" or "distance" from the character's center
     // goal: calculate
 
-    const calcHypotenuseEndpoint = (sx, sy) => {
+    // const calcHypotenuseEndpoint = (sx, sy) => {
       // from pythagorean theorem, use vector equation:
       //  V = sqrt((x2 - x1)^2 + (y2 - y1)^2)
       //  (y2 - y1)^2 = (x2 - x1)^2 - v^2
@@ -226,9 +286,9 @@ class OverworldContainer extends Component {
       // get length of b when xy has not changed
 
       // math...
-    }
+    // }
 
-    const generateSpatialDetectionRays = (centerX, centerY, distanceFromObjectCenter) => {
+    // const generateSpatialDetectionRays = (centerX, centerY, distanceFromObjectCenter) => {
       // use pseudo-raycasting to detect walls at n distance from object's center coordinates
       //   e.g. top raycast detection:
       //     * project a line from the object's center to n `distance`
@@ -238,9 +298,9 @@ class OverworldContainer extends Component {
 
       // const x = transformToCoordinate({ cellSize, centerX }); // x-coord
       // const y = transformToCoordinate({ cellSize, centerY }); // y-coord
-      const top = `${col}_${row}`;
-      return [top, topRight, right, bottomRight, bottom, bottomLeft, Left, topLeft];
-    }
+    //   const top = `${col}_${row}`;
+    //   return [top, topRight, right, bottomRight, bottom, bottomLeft, Left, topLeft];
+    // }
     // use spatialDetectionRayCoords to check if each coord exists as a key in `walls`
     // const spatialDetectionRayCoords = generateSpatialDetectionRays(1000);
 
@@ -251,7 +311,13 @@ class OverworldContainer extends Component {
       ))
     );
 
-    // console.log('walls detected: ', detectWalls());
+    const detectedWalls = detectWalls();
+    console.log('walls detected: ', detectedWalls);
+
+    // #collision
+    // const collisionDetection = () => {
+    //
+    // }
 
     ctx.save();
 
@@ -259,7 +325,7 @@ class OverworldContainer extends Component {
     if (pRow !== stateRow || pCol !== stateCol) {
       this.props.dispatch(updateGameMap({
         playerCoordinates,
-        detectedWalls: detectWalls(),
+        detectedWalls: detectedWalls,
       }));
     }
     // this.setState({ ctx });
@@ -274,13 +340,13 @@ class OverworldContainer extends Component {
   }
 
   // #here - #collision
-  collisionDetection() {
+  // collisionDetection() {
     // figure out if next cell is impassable or not
     // 8-dir (3 x 3) detection radius
     // if any next cell/s in detection radius is impassable,
     // disallow movement to that/those cell/s
-    console.log('\n walls in map: ', this.props.gameMap.walls)
-  }
+    // console.log('\n walls in map: ', this.props.gameMap.walls)
+  // }
 
   // onCollide() {
   //   // do not move player to next cell
@@ -337,6 +403,10 @@ class OverworldContainer extends Component {
     });
   }
 
+  toggleWallHighlights() {
+    this.setState({ wallsHighlighted: !this.state.wallsHighlighted });
+  }
+
   render() {
     const { gameMap } = this.props;
     const mapPosition = {
@@ -375,6 +445,7 @@ class OverworldContainer extends Component {
     return (
       <div>
         <button onClick={this.cancelAnimationFrame}>Stop Animation Frames</button>
+        <button onClick={this.toggleWallHighlights}>TOGGLE WALL HIGHLIGHTS</button>
         <div
           tabIndex="0"
           role="presentation"
@@ -384,7 +455,7 @@ class OverworldContainer extends Component {
         >
           <Camera dimensions={cameraDimensions}>
             {/* #here insert player character component here */}
-            <div id="spatialFieldStyles" style={spatialFieldStyles} className={styles.spatialField} />
+            {/* <div id="spatialFieldStyles" style={spatialFieldStyles} className={styles.spatialField} /> */}
             <h1 id="playerKarakter" style={playerStyles} className={styles.playerCharacter}></h1>
             {/* <div style={mapPosition} className={styles.mapBackground} /> */}
             <Canvas
