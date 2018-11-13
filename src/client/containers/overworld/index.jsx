@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 
 import Camera from '@containers/camera';
 import Canvas from '@components/canvas';
-import { updateActiveKeys } from '@dux/keys_pressed';
+import { updateActiveKeys, clearActiveKeys } from '@dux/keys_pressed';
 import {
   updateWalls,
   setMapArray,
@@ -24,7 +24,10 @@ import { drawPaintedCells, highlightCell } from '@utils/map_builder_helpers';
 
 import styles from './overworld.scss';
 
+// =====================================================
 // #here temporary - move to a config or constants file
+// pre-load assets with new states (aka when loading a different map or character/s)
+// =====================================================
 const velocity = 5;
 const playerSize = 50;
 const cellSize = sampleMap['0_0'].cellSize // 96px
@@ -56,12 +59,39 @@ const highlightWalls = (ctx) => {
   });
 };
 
+// #collision
+// initial idea:
+// if nearbyWalls has contents, iterate through the array
+  // lookup keys in wallsObject
+    // calculate all top, right, left, and bottom pixel coordinates for each wall cell
+    // create a min/max range for each side
+      // (optimization opportunity for cell borders with same coordinates)
+  // store min/max ranges for each side in state
+
+// on collide
+  // get 8-dir "border" coordinates from player center
+  // if any of the x coordinates equal (or less that 1px difference???) the x coordinates in stored range, set "movement allowed" state to false
+  // if any of the y coordinates equal (or less that 1px difference???) the x coordinates in stored range, set "movement allowed" state to false
+// const collisionDetection = (nearbyWalls) => {
+//   if (!nearbyWalls.length) return null;
+//
+//   // nearbyWalls.forEach((wallCoord) => {
+//   //   wallsObject[wallCoord]
+//   // })
+//   return 'something...'
+// };
+
+
+// =====================================================
+
 class OverworldContainer extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       animationFramesId: null,
+      lastFrameTimestamp: 0,
+      currentFrameTimestamp: 0,
       // #here think of a better name!!! ZOMG!
       // move to duck / config constant
       playerContainerData: { // #static!
@@ -101,7 +131,7 @@ class OverworldContainer extends Component {
     this.initializeCanvasContext = this.initializeCanvasContext.bind(this);
     this.drawMapInCanvas = this.drawMapInCanvas.bind(this);
     this.kickoffAnimationFrames = this.kickoffAnimationFrames.bind(this);
-    this.cancelAnimationFrame = this.cancelAnimationFrame.bind(this);
+    this.stopAnimationFrame = this.stopAnimationFrame.bind(this);
     this.handleKeypress = this.handleKeypress.bind(this);
     this.dispatchUpdateMapPosition = this.dispatchUpdateMapPosition.bind(this);
     this.updateContainer = this.updateContainer.bind(this);
@@ -124,41 +154,86 @@ class OverworldContainer extends Component {
     if (!this.state.playerSprite) {
       this.initializePlayerSprite();
     }
-
     this.props.dispatch(updateActiveKeys({}));
-    this.initializeCanvasContext();
-    this.kickoffAnimationFrames();
+
+    this.initializeCanvasContext().then(() => {
+      // #kickoff
+      this.kickoffAnimationFrames();
+    });
   }
 
   componentWillUnmount() {
-    this.cancelAnimationFrame();
+    this.stopAnimationFrame();
   }
 
   initializeCanvasContext() {
-    const ctx = this.canvas.getContext('2d');
-    this.setState({ ctx })
+    return new Promise((resolve) => {
+      const ctx = this.canvas.getContext('2d');
+      this.setState({ ctx });
+
+      resolve();
+    })
   }
 
+  // #gameloop #mainloop
   kickoffAnimationFrames() {
-    const animationFramesId = requestAnimationFrame(this.updateContainer);
+    // #here - is this #Necessary?
+    // if (this.state.animationFramesId) {
+    //   cancelAnimationFrame(this.state.animationFramesId);
+    // }
+
+    // const timestamp = Date.now();
+    // const { lastFrameTimestamp, currentFrameTimestamp } = this.state;
+    // console.log('last frame timestamp: ', lastFrameTimestamp);
+    // console.log('timestamp: ', timestamp)
+    //
+    // if (!lastFrameTimestamp || lastFrameTimestamp + (1000 / 60) <= timestamp) {
+    //   this.updateContainer();
+    //
+    //   const animationFramesId = requestAnimationFrame(this.kickoffAnimationFrames);
+    //
+    //   console.log('kicking off animation frame id: ', animationFramesId);
+    //   this.setState({
+    //     animationFramesId,
+    //     lastFrameTimestamp: timestamp,
+    //     currentFrameTimestamp: timestamp,
+    //   });
+    // }
+
+
+    // else {
+    //   console.log('lastFrameTimestamp less than timestamp: ', timestamp);
+    //   const animationFramesId = requestAnimationFrame(this.kickoffAnimationFrames);
+    //   this.setState({ animationFramesId, currentFrameTimestamp: timestamp });
+    // }
+
+    // if (!this.state.ctx) {
+    //   this.initializeCanvasContext();
+    // }
+
+    this.updateContainer();
+    const animationFramesId = requestAnimationFrame(this.kickoffAnimationFrames);
+    // console.log('kicking off animation frame id: ', animationFramesId);
     this.setState({ animationFramesId });
+
+    // const animationFramesId = requestAnimationFrame(this.updateContainer);
+    // console.log('kicking off animation frame id: ', animationFramesId);
+    // this.setState({ animationFramesId });
+
+    // requestAnimationFrame(this.);
+
   }
 
-  cancelAnimationFrame() {
+  stopAnimationFrame() {
     cancelAnimationFrame(this.state.animationFramesId);
     this.setState({ animationFramesId: null });
   }
 
-  // #updatecontainer
+  // #updatecontainer #gameloop
   updateContainer() {
-    // this.collisionDetection();
-
-    const { keysPressed: { activeKeys } } = this.props;
-
-    if (activeKeys) {
-      this.dispatchUpdateMapPosition();
-    }
-
+    // must happen synchronously???
+    // #movement
+    this.handleMovement();
     this.updateCanvas();
   }
 
@@ -171,8 +246,9 @@ class OverworldContainer extends Component {
 
     this.setState({ mapImage: createImage(spriteMapSource) })
 
-
     dispatch(updateCellSize(cellSize)); // #here - temporary constant
+    // #dispatchmaparraydispatch
+    // console.log('map array before dispatch: ', mapArray)
     dispatch(setMapArray(mapArray));
     dispatch(updateWalls(wallsObject));
 
@@ -195,20 +271,20 @@ class OverworldContainer extends Component {
 
     ctx.drawImage(mapImage, 0, 0, 1152, 1152);
 
-    // #ctxhighlight
+    // #ctxhighlight #highlight
     if (wallsHighlighted) {
       highlightWalls(ctx);
     }
   }
 
-  // #updatecanvas #here
+  // #updatecanvas #here #update-definition
   updateCanvas() {
     const { ctx, playerSpriteSheet } = this.state;
 
     // player on canvas
     // move logic to own function!!!
     // this function should only care about updating the canvas states
-    const { row: stateRow, col: stateCol } = this.props.gameMap.playerCoordinates;
+    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
     const map = document.getElementById('overworldCanvas');
     const pc = document.getElementById('playerKarakter');
 
@@ -225,6 +301,16 @@ class OverworldContainer extends Component {
     const centerY = rectY + halfPlayerSize; // row
     const pRow = transformToCoordinate({ cellSize, position: centerY }); // y-coord
     const pCol = transformToCoordinate({ cellSize, position: centerX }); // x-coord
+
+    // #here calculation seems to work... it's just a matter of when this gets assigned
+    // playerrhitbox #hitboxboundaries #boundaries
+    const playerHitbox = {
+      left: tlX,
+      right: tlX + playerSize,
+      top: tlY,
+      bottom: tlY + playerSize,
+    };
+
     const playerCoordinates = {
       tlX: rectX,
       tlY: rectY,
@@ -232,16 +318,19 @@ class OverworldContainer extends Component {
       centerY,
       row: pRow, // calculated from center of character square
       col: pCol, // calculated from center of character square
+      playerSize,
+      halfPlayerSize,
+      // playerHitbox,
     };
 
     this.drawMapInCanvas();
 
-    // #playersprite
+    // #playersprite #drawplayer
     ctx.fillStyle = 'yellow';
     ctx.fillRect(rectX, rectY, playerSize, playerSize);
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, rectX, rectY, playerSize, playerSize);
 
-    // #spatial detection logic
+    // #spatial detection area #hurr
     // initial idea - 8 directions represented as blocks forming a 3x3 square around player
     const spatialFieldCoordStrings = [
       `${pCol}_${pRow - 1}`, // top
@@ -254,106 +343,194 @@ class OverworldContainer extends Component {
       `${pCol - 1}_${pRow - 1}`, // top-left
     ];
 
-    this.setState({
-      spatialFieldCoordStrings,
-      playerTLCoords: {
-        x: pCol,
-        y: pRow,
-        rectX,
-        rectY,
-        centerX,
-        centerY,
-      },
-    });
+    // this.setState({
+    //   playerTLCoords: {
+    //     x: pCol,
+    //     y: pRow,
+    //     rectX,
+    //     rectY,
+    //     centerX,
+    //     centerY,
+    //   },
+    // });
 
-    // WIP - experiment with simplified ray casting to find walls
-    // need 8 rays for each direction
-    // each ray will be a vector of the same "length" or "distance" from the character's center
-    // goal: calculate
-
-    // const calcHypotenuseEndpoint = (sx, sy) => {
-      // from pythagorean theorem, use vector equation:
-      //  V = sqrt((x2 - x1)^2 + (y2 - y1)^2)
-      //  (y2 - y1)^2 = (x2 - x1)^2 - v^2
-      //    y2 = sqrt((x2 - x1)^2 - v^2) + y1
-      //  x2 = sqrt((y2 - y1)^2 - v^2) + x1
-      //  x2 = sqrt((sqrt((x2 - x1)^2 - v^2) + y1)^2 - v^2) + x1 <-- solve this, then use x2's value to get y2...
-      //
-      // have starting point and hypotenuse length
-      // need coords of hyp endpoint
-
-      // get length of a when sx has not changed
-      // get length of b when xy has not changed
-
-      // math...
-    // }
-
-    // const generateSpatialDetectionRays = (centerX, centerY, distanceFromObjectCenter) => {
-      // use pseudo-raycasting to detect walls at n distance from object's center coordinates
-      //   e.g. top raycast detection:
-      //     * project a line from the object's center to n `distance`
-      //     * at n, convert coordinate to col/row string
-      // return array containing raycast endponts for all 8 directions
-      //  each element should be a coordinate string `col_row` (representing game map x_y)
-
-      // const x = transformToCoordinate({ cellSize, centerX }); // x-coord
-      // const y = transformToCoordinate({ cellSize, centerY }); // y-coord
-    //   const top = `${col}_${row}`;
-    //   return [top, topRight, right, bottomRight, bottom, bottomLeft, Left, topLeft];
-    // }
-    // use spatialDetectionRayCoords to check if each coord exists as a key in `walls`
-    // const spatialDetectionRayCoords = generateSpatialDetectionRays(1000);
-
-
+    // #wall detection here
     const detectWalls = () => (
       spatialFieldCoordStrings.filter(coord => (
         this.props.gameMap.walls.hasOwnProperty(coord)
       ))
     );
 
-    const detectedWalls = detectWalls();
-    console.log('walls detected: ', detectedWalls);
+    const nearbyWalls = detectWalls();
+    // keep this log for visual debugging / demo
+    // console.log('nearby walls detected: ', nearbyWalls);
 
-    // #collision
-    // const collisionDetection = () => {
-    //
-    // }
 
     ctx.save();
 
     // temporary - to prevent unnecessary state updates when tracking player position
-    if (pRow !== stateRow || pCol !== stateCol) {
+    if (rectY !== tlY || rectX !== tlX) {
+      // multiple dispatches vs one???
       this.props.dispatch(updateGameMap({
         playerCoordinates,
-        detectedWalls: detectedWalls,
+        nearbyWalls,
+        playerHitbox,
       }));
     }
+
+    // this.handleMovement();
     // this.setState({ ctx });
   }
 
+  // #keypress #press #keydown #keyup
   handleKeypress(e) {
     const { keyCode, type } = e;
     const { keysPressed: { activeKeys }, dispatch } = this.props;
-    const activeKey = type === 'keydown' ? assignKey(activeKeys, keyCode) : removeKey(activeKeys, keyCode);
+    const allowedKeyCodes = Object.values(allowedKeys);
+    const activeKeyCodes = Object.values(activeKeys);
 
-    dispatch(updateActiveKeys(activeKey));
+    if (!allowedKeyCodes.includes(keyCode)) return;
+    if (activeKeyCodes.includes(keyCode)) return;
+
+    const currentActiveKeysObj = type === 'keydown' ? assignKey(activeKeys, keyCode) : removeKey(activeKeys, keyCode);
+
+    // cosole.log('if activeKey')
+
+    // #here hmm..?
+    // call this.handleMovement here
+    dispatch((dispatch) => (
+      new Promise((resolve) => {
+        // debugger
+        dispatch(updateActiveKeys(currentActiveKeysObj))
+        resolve();
+      })
+    )).then(() => {
+      // this.handleMovement()
+      if (Object.keys(activeKeys).length) {
+        // console.log('active keys: ', Object.keys(activeKeys).length)
+        // this.dispatchUpdateMapPosition();
+        // #updatehere
+        this.updateContainer();
+      }
+    });
   }
 
-  // #here - #collision
-  // collisionDetection() {
-    // figure out if next cell is impassable or not
-    // 8-dir (3 x 3) detection radius
-    // if any next cell/s in detection radius is impassable,
-    // disallow movement to that/those cell/s
-    // console.log('\n walls in map: ', this.props.gameMap.walls)
-  // }
+  // #move #handlemove
+  handleMovement = () => {
+    const {
+      keysPressed: { activeKeys },
+      gameMap: {
+        playerHitbox,
+        nearbyWalls,
+        walls,
+      },
+      dispatch,
+    } = this.props;
 
-  // onCollide() {
-  //   // do not move player to next cell
-  // }
+    const {
+      left: pLeft,
+      right: pRight,
+      top: pTop,
+      bottom: pBottom,
+    } = playerHitbox;
 
-  // #here - check collision status before moving
-  dispatchUpdateMapPosition() {
+    // collisionThreshold is tentative... can change this value to w/e
+    const collisionThreshold = 10;
+
+    // console.log('active keys: ', Object.keys(activeKeys).length)
+    if (!Object.keys(activeKeys).length) return;
+
+    // #move this out...
+    // move this into update()
+      // - collision detection logic should be separate from movement logic!
+      // - add parameter for detection detector and detectee (aka player detecting walls or projectiles)
+    const detectWallCollision = () => {
+      if (!nearbyWalls.length) return [];// false;
+
+      // make an array of wall collision objects
+      // each object will contain
+      return nearbyWalls.reduce((acc, wallCoord) => {
+        const accum = acc;
+        const wall = walls[wallCoord];
+        const playerLeftCollide = pLeft <= wall.x + cellSize; // player left x <= wall right x
+        const playerRightCollide = pRight >= wall.x; // player right x >= wall left x
+        const playerTopCollide = pTop <= wall.y + cellSize; // player top y <= wall bottom y
+        const playerBottomCollide = pBottom >= wall.y; // player bottom y >= wall top y
+
+        if (playerLeftCollide && playerRightCollide && playerTopCollide && playerBottomCollide) {
+          const pLeftCollision = Math.abs(pLeft - (wall.x + cellSize))
+          const pRightCollision = Math.abs(pRight - wall.x)
+          const pTopCollision = Math.abs(pTop - (wall.y + cellSize))
+          const pBottomCollision = Math.abs(pBottom - wall.y)
+
+          const playerHitboxCollidingSides = Object.keys(playerHitbox).filter((hitboxSide) => {
+            // hmmm... can still improve/change this switch statement
+            switch (hitboxSide) {
+              case 'left': {
+                if (pLeftCollision <= collisionThreshold) {
+                  return hitboxSide;
+                }
+                return;
+              }
+              case 'right': {
+                if (pRightCollision <= collisionThreshold) {
+                  return hitboxSide;
+                }
+                return;
+              }
+              case 'top': {
+                if (pTopCollision <= collisionThreshold) {
+                  return hitboxSide;
+                }
+                return;
+              }
+              default: {
+                if (pBottomCollision <= collisionThreshold) {
+                  return hitboxSide;
+                }
+                return;
+              }
+            }
+          })
+
+          accum.push({
+            wallCoord,
+            playerHitboxCollidingSides,
+            // temporary -- can delete if not needed:
+            pLeftCollision,
+            pRightCollision,
+            pTopCollision,
+            pBottomCollision,
+          });
+
+          return accum;
+        }
+
+        return accum;
+      }, []);
+    };
+
+    const bumpedWalls = detectWallCollision();
+
+
+
+    if (bumpedWalls.length > 0) {
+      console.log('collision detected!!! BOOM ~ ~  ~ ~ ~ ~ ~');
+
+      // #updatecanvas
+      // this.updateCanvas();
+      // update map and player position
+    }
+
+    console.log('bumped walls...: ', bumpedWalls);
+
+    dispatch(updateGameMap({
+      playerHitboxCollidingSides: bumpedWalls.length ? bumpedWalls[0].playerHitboxCollidingSides : [],
+    }));
+    this.dispatchUpdateMapPosition({ velocity });
+  }
+
+  dispatchUpdateMapPosition({ velocity }) {
     const { keysPressed: { activeKeys }, gameMap, dispatch } = this.props;
     const { left, right, up, down } = allowedKeys;
 
@@ -373,8 +550,11 @@ class OverworldContainer extends Component {
       dispatch(updateMapY(gameMap.y -= velocity));
     }
 
-    this.kickoffAnimationFrames();
+    // #wat what... WAT?!??!?!
+    // #updatecanvas
+    this.updateCanvas();
   }
+
 
   // #here -- move to player character component #pcrect #spatialboxdata
   // calculates size and location of spatial detection field centered around player
@@ -406,6 +586,14 @@ class OverworldContainer extends Component {
   toggleWallHighlights() {
     this.setState({ wallsHighlighted: !this.state.wallsHighlighted });
   }
+
+  handleContainerBlur = () => {
+    console.log('bllurring div');
+
+    const { dispatch } = this.props;
+    dispatch(clearActiveKeys());
+  }
+
 
   render() {
     const { gameMap } = this.props;
@@ -444,7 +632,7 @@ class OverworldContainer extends Component {
 
     return (
       <div>
-        <button onClick={this.cancelAnimationFrame}>Stop Animation Frames</button>
+        <button onClick={this.stopAnimationFrame}>Stop Animation Frames</button>
         <button onClick={this.toggleWallHighlights}>TOGGLE WALL HIGHLIGHTS</button>
         <div
           tabIndex="0"
@@ -452,11 +640,12 @@ class OverworldContainer extends Component {
           id="overworldMovementContainer"
           onKeyDown={this.handleKeypress}
           onKeyUp={this.handleKeypress}
+          onBlur={this.handleContainerBlur}
         >
           <Camera dimensions={cameraDimensions}>
             {/* #here insert player character component here */}
             {/* <div id="spatialFieldStyles" style={spatialFieldStyles} className={styles.spatialField} /> */}
-            <h1 id="playerKarakter" style={playerStyles} className={styles.playerCharacter}></h1>
+            <h1 id="playerKarakter" style={playerStyles} className={styles.playerCharacter} />
             {/* <div style={mapPosition} className={styles.mapBackground} /> */}
             <Canvas
               canvasStyle={mapPosition}

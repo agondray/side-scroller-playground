@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "git@github.com:jvestolas/side-scroller-playground.git",
   "scripts": {
-    "start": "node_modules/.bin/webpack-dev-server --port 1337 --config ./webpack/config.js --env development",
+    "start": "node_modules/.bin/webpack-dev-server --port 1337 --config ./webpack/config.js --env development --quiet --no-info",
     "storybook": "start-storybook -p 9001 -c .storybook",
     "build": "rm -rf build && rm -rf dist && webpack --config webpack/config.js --env development",
     "clean": "rm -rf build && rm -rf dist"

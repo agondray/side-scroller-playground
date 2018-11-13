@@ -15,6 +15,7 @@ const initialState = {
   gridObject: {},
   gridArray: [],
   walls: {},
+  nearbyWalls: [],
   x: 96,
   y: 96,
   cellSize: 0,
@@ -25,8 +26,11 @@ const initialState = {
     centerY: null,
     row: null,
     col: null,
+    playerSize: null,
+    halfPlayerSize: null,
   },
-  detectedWalls: [],
+  playerHitbox: {}, // possibly have a separate store for hitboxes and collisions???
+  playerHitboxCollidingSides: [] // hmm...
 };
 
 export default function gameMapReducer(state = initialState, action = {}) {

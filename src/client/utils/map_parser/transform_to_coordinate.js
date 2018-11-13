@@ -1,6 +1,5 @@
 const transformToCoordinate = ({ cellSize, position, maxCoord = 12 }) => {
-  // WIP - may need to cover more edge cases...
-  // if (position === cellSize && position > 0) return 2;
+  // cellSize is really just the length of a cell's side.
   if (position < cellSize) return 1;
 
   const coordinate = Math.floor(position / cellSize) + 1;
