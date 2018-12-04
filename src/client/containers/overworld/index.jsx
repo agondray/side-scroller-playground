@@ -30,6 +30,7 @@ import styles from './overworld.scss';
 // =====================================================
 const velocity = 5;
 const playerSize = 50;
+const halfPlayerSize = playerSize / 2;
 const cellSize = sampleMap['0_0'].cellSize // 96px
 
 const spriteMapSource = require('@images/sample_maps/sample_map_1.png');
@@ -157,7 +158,6 @@ class OverworldContainer extends Component {
     this.props.dispatch(updateActiveKeys({}));
 
     this.initializeCanvasContext().then(() => {
-      // #kickoff
       this.kickoffAnimationFrames();
     });
   }
@@ -175,53 +175,14 @@ class OverworldContainer extends Component {
     })
   }
 
-  // #gameloop #mainloop
+  // #gameloop #mainloop #kickoff
+  // rename this to gameLoop
   kickoffAnimationFrames() {
-    // #here - is this #Necessary?
-    // if (this.state.animationFramesId) {
-    //   cancelAnimationFrame(this.state.animationFramesId);
-    // }
-
-    // const timestamp = Date.now();
-    // const { lastFrameTimestamp, currentFrameTimestamp } = this.state;
-    // console.log('last frame timestamp: ', lastFrameTimestamp);
-    // console.log('timestamp: ', timestamp)
-    //
-    // if (!lastFrameTimestamp || lastFrameTimestamp + (1000 / 60) <= timestamp) {
-    //   this.updateContainer();
-    //
-    //   const animationFramesId = requestAnimationFrame(this.kickoffAnimationFrames);
-    //
-    //   console.log('kicking off animation frame id: ', animationFramesId);
-    //   this.setState({
-    //     animationFramesId,
-    //     lastFrameTimestamp: timestamp,
-    //     currentFrameTimestamp: timestamp,
-    //   });
-    // }
-
-
-    // else {
-    //   console.log('lastFrameTimestamp less than timestamp: ', timestamp);
-    //   const animationFramesId = requestAnimationFrame(this.kickoffAnimationFrames);
-    //   this.setState({ animationFramesId, currentFrameTimestamp: timestamp });
-    // }
-
-    // if (!this.state.ctx) {
-    //   this.initializeCanvasContext();
-    // }
-
     this.updateContainer();
     const animationFramesId = requestAnimationFrame(this.kickoffAnimationFrames);
-    // console.log('kicking off animation frame id: ', animationFramesId);
+    // console.log('animation frame id: ', animationFramesId);
     this.setState({ animationFramesId });
-
-    // const animationFramesId = requestAnimationFrame(this.updateContainer);
-    // console.log('kicking off animation frame id: ', animationFramesId);
-    // this.setState({ animationFramesId });
-
-    // requestAnimationFrame(this.);
-
+    // this.setState({ animationFramesId }, () => { this.updateContainer(); });
   }
 
   stopAnimationFrame() {
@@ -231,10 +192,24 @@ class OverworldContainer extends Component {
 
   // #updatecontainer #gameloop
   updateContainer() {
-    // must happen synchronously???
-    // #movement
-    this.handleMovement();
-    this.updateCanvas();
+    const drawPromise = () => (
+      new Promise((resolve) => {
+        this.updatePlayerPosition();
+        this.updateCanvasContext();
+
+        // setTimeout(() => { resolve(); }, 100);
+        resolve();
+      })
+    );
+
+    drawPromise().then(() => {
+      this.dispatchUpdateMapPosition({ velocity });
+    });
+    // this.moveMap();
+
+    // this.dispatchUpdateMapPosition({ velocity });
+    // this.updatePlayerPosition();
+    // this.updateCanvasContext();
   }
 
   initializeMap() {
@@ -263,72 +238,84 @@ class OverworldContainer extends Component {
 
   initializePlayerSprite() {
     this.setState({ playerSpriteSheet: createImage(playerSprite) });
+    // this.updatePlayerPosition();
   }
 
   drawMapInCanvas() {
     // mov emapImage to store!
     const { ctx, mapImage, wallsHighlighted } = this.state;
 
+    // store map size in a constant
     ctx.drawImage(mapImage, 0, 0, 1152, 1152);
 
     // #ctxhighlight #highlight
     if (wallsHighlighted) {
       highlightWalls(ctx);
     }
+
+    // ctx.save();
   }
 
-  // #updatecanvas #here #update-definition
+  // #updatecanvascontext
+  updateCanvasContext = () => {
+    const { ctx } = this.state;
+
+    if (ctx) {
+      ctx.restore();
+
+      this.drawMapInCanvas();
+      this.drawPlayer();
+
+      ctx.save();
+    }
+  }
+
+  // #updatecanvas-wip-old-has-spatial-field
   updateCanvas() {
-    const { ctx, playerSpriteSheet } = this.state;
-
-    // player on canvas
-    // move logic to own function!!!
-    // this function should only care about updating the canvas states
-    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
-    const map = document.getElementById('overworldCanvas');
-    const pc = document.getElementById('playerKarakter');
-
-    const halfPlayerSize = playerSize / 2;
-    const mapOffsetLeft = map.offsetLeft;
-    const mapOffsetTop = map.offsetTop;
-    const rectX = mapOffsetLeft <= 0 ?
-      Math.abs(mapOffsetLeft) + pc.offsetLeft :
-      pc.offsetLeft - map.offsetLeft;
-    const rectY = mapOffsetTop <= 0 ?
-      Math.abs(mapOffsetTop) + pc.offsetTop :
-      pc.offsetTop - map.offsetTop;
-    const centerX = rectX + halfPlayerSize; // column
-    const centerY = rectY + halfPlayerSize; // row
-    const pRow = transformToCoordinate({ cellSize, position: centerY }); // y-coord
-    const pCol = transformToCoordinate({ cellSize, position: centerX }); // x-coord
-
-    // #here calculation seems to work... it's just a matter of when this gets assigned
-    // playerrhitbox #hitboxboundaries #boundaries
-    const playerHitbox = {
-      left: tlX,
-      right: tlX + playerSize,
-      top: tlY,
-      bottom: tlY + playerSize,
-    };
-
-    const playerCoordinates = {
-      tlX: rectX,
-      tlY: rectY,
-      centerX,
-      centerY,
-      row: pRow, // calculated from center of character square
-      col: pCol, // calculated from center of character square
-      playerSize,
-      halfPlayerSize,
-      // playerHitbox,
-    };
+  //   const { ctx, playerSpriteSheet } = this.state;
+  // -
+  //   // player on canvas
+  //   // move logic to own function!!!
+  //   // this function should only care about updating the canvas states
+  //   const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+  //   const map = document.getElementById('overworldCanvas');
+  //   const pc = document.getElementById('playerKarakter');
+  // -
+  //   const halfPlayerSize = playerSize / 2;
+  //   const mapOffsetLeft = map.offsetLeft;
+  //   const mapOffsetTop = map.offsetTop;
+  //   const rectX = mapOffsetLeft <= 0 ?
+  //     Math.abs(mapOffsetLeft) + pc.offsetLeft :
+  //     pc.offsetLeft - map.offsetLeft;
+  //   const rectY = mapOffsetTop <= 0 ?
+  //     Math.abs(mapOffsetTop) + pc.offsetTop :
+  //     pc.offsetTop - map.offsetTop;
+  //   const centerX = rectX + halfPlayerSize; // column
+  //   const centerY = rectY + halfPlayerSize; // row
+  //   const pRow = transformToCoordinate({ cellSize, position: centerY }); // y-coord
+  //   const pCol = transformToCoordinate({ cellSize, position: centerX }); // x-coord
+  // -
+  //   // #here calculation seems to work... it's just a matter of when this gets assigned
+  //   // playerrhitbox #hitboxboundaries #boundaries
+  //   const playerHitbox = {
+  //     left: tlX,
+  //     right: tlX + playerSize,
+  //     top: tlY,
+  //     bottom: tlY + playerSize,
+  //   };
+  // -
+  //   const playerCoordinates = {
+  //     tlX: rectX,
+  //     tlY: rectY,
+  //     centerX,
+  //     centerY,
+  //     row: pRow, // calculated from center of character square
+  //     col: pCol, // calculated from center of character square
+  //     playerSize,
+  //     halfPlayerSize,
+  //   }
 
     this.drawMapInCanvas();
-
-    // #playersprite #drawplayer
-    ctx.fillStyle = 'yellow';
-    ctx.fillRect(rectX, rectY, playerSize, playerSize);
-    ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, rectX, rectY, playerSize, playerSize);
 
     // #spatial detection area #hurr
     // initial idea - 8 directions represented as blocks forming a 3x3 square around player
@@ -343,17 +330,6 @@ class OverworldContainer extends Component {
       `${pCol - 1}_${pRow - 1}`, // top-left
     ];
 
-    // this.setState({
-    //   playerTLCoords: {
-    //     x: pCol,
-    //     y: pRow,
-    //     rectX,
-    //     rectY,
-    //     centerX,
-    //     centerY,
-    //   },
-    // });
-
     // #wall detection here
     const detectWalls = () => (
       spatialFieldCoordStrings.filter(coord => (
@@ -366,7 +342,7 @@ class OverworldContainer extends Component {
     // console.log('nearby walls detected: ', nearbyWalls);
 
 
-    ctx.save();
+    // ctx.save();
 
     // temporary - to prevent unnecessary state updates when tracking player position
     if (rectY !== tlY || rectX !== tlX) {
@@ -377,45 +353,82 @@ class OverworldContainer extends Component {
         playerHitbox,
       }));
     }
-
-    // this.handleMovement();
-    // this.setState({ ctx });
   }
 
-  // #keypress #press #keydown #keyup
-  handleKeypress(e) {
-    const { keyCode, type } = e;
-    const { keysPressed: { activeKeys }, dispatch } = this.props;
-    const allowedKeyCodes = Object.values(allowedKeys);
-    const activeKeyCodes = Object.values(activeKeys);
+  // #koko #updateplayerposition #canvas
+  // #koko-here - change this to make player position independent from player camera
+  // only initial position can be dependent on camera
+  updatePlayerPosition = () => {
+    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+    const map = document.getElementById('overworldCanvas');
+    const { offsetLeft: mapOffsetLeft, offsetTop: mapOffsetTop } = map;
 
-    if (!allowedKeyCodes.includes(keyCode)) return;
-    if (activeKeyCodes.includes(keyCode)) return;
+    const playerCharacter = document.getElementById('playerKarakter');
+    const { offsetLeft: pcOffsetLeft, offsetTop: pcOffsetTop } = playerCharacter;
 
-    const currentActiveKeysObj = type === 'keydown' ? assignKey(activeKeys, keyCode) : removeKey(activeKeys, keyCode);
+    const rectX = mapOffsetLeft <= 0 ?
+      Math.abs(mapOffsetLeft) + pcOffsetLeft : pcOffsetLeft - mapOffsetLeft;
+    const rectY = mapOffsetTop <= 0 ?
+      Math.abs(mapOffsetTop) + pcOffsetTop : pcOffsetTop - map.offsetTop;
 
-    // cosole.log('if activeKey')
+    const pcCenterX = rectX - halfPlayerSize; // column
+    const pcCenterY = rectY + halfPlayerSize; // row
+    const pcRow = transformToCoordinate({ cellSize, position: pcCenterY });
+    const pcCol = transformToCoordinate({ cellSize, position: pcCenterX });
 
-    // #here hmm..?
-    // call this.handleMovement here
-    dispatch((dispatch) => (
-      new Promise((resolve) => {
-        // debugger
-        dispatch(updateActiveKeys(currentActiveKeysObj))
-        resolve();
-      })
-    )).then(() => {
-      // this.handleMovement()
-      if (Object.keys(activeKeys).length) {
-        // console.log('active keys: ', Object.keys(activeKeys).length)
-        // this.dispatchUpdateMapPosition();
-        // #updatehere
-        this.updateContainer();
-      }
-    });
-  }
+    const playerHitbox = {
+      left: rectX,
+      right: rectX + playerSize,
+      top: rectY,
+      bottom: rectY + playerSize,
+    };
 
-  // #move #handlemove
+    const playerCoordinates = {
+      tlX: rectX,
+      tlY: rectY,
+      centerX: pcCenterX,
+      centerY: pcCenterY,
+      row: pcRow,
+      col: pcCol,
+    };
+
+    // const drawPlayerParams = {
+    //   ctx,
+    //   playerSize,
+    //   playerSpriteSheet,
+    //   tlX: rectX,
+    //   tlY: rectY,
+    // };
+
+    // this.drawPlayer({
+    //   tlXParam: rectX,
+    //   tlYParam: rectY,
+    // });
+
+    if (rectY !== tlY || rectX !== tlX) {
+      this.props.dispatch(updateGameMap({
+        playerCoordinates,
+        playerHitbox,
+      }));
+    }
+  };
+
+  // #drawplayer
+  // rename to drawPlayerInCoordinate or something like that..
+  drawPlayer = () => { // = ({ tlXParam, tlYParam }) => {
+    const { ctx, playerSpriteSheet } = this.state;
+    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+    ctx.restore();
+    // temporary fill for testing
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(tlX, tlY, playerSize, playerSize);
+    ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, tlX, tlY, playerSize, playerSize);
+
+    ctx.save();
+  };
+  // /#koko
+
+  // #move #handlemove #collision-wrapper
   handleMovement = () => {
     const {
       keysPressed: { activeKeys },
@@ -524,12 +537,45 @@ class OverworldContainer extends Component {
 
     console.log('bumped walls...: ', bumpedWalls);
 
+    // #movedispatchd
     dispatch(updateGameMap({
       playerHitboxCollidingSides: bumpedWalls.length ? bumpedWalls[0].playerHitboxCollidingSides : [],
     }));
     this.dispatchUpdateMapPosition({ velocity });
   }
 
+  // #keypress #press #keydown #keyup
+  handleKeypress(e) {
+    const { keyCode, type } = e;
+    const { keysPressed: { activeKeys }, dispatch } = this.props;
+    const allowedKeyCodes = Object.values(allowedKeys);
+    const activeKeyCodes = Object.values(activeKeys);
+
+    if (!allowedKeyCodes.includes(keyCode)) return;
+    if (activeKeyCodes.includes(keyCode)) return;
+
+    const currentActiveKeysObj = type === 'keydown' ? assignKey(activeKeys, keyCode) : removeKey(activeKeys, keyCode);
+
+    // dispatch(updateActiveKeys(currentActiveKeysObj));
+    // this.updateContainer();
+
+
+    // #here hmm..?
+    // call this.handleMovement here?
+    dispatch(() => (
+      new Promise((resolve) => {
+        // debugger
+        updateActiveKeys(currentActiveKeysObj);
+        resolve();
+      })
+    )).then(() => {
+      if (Object.keys(activeKeys).length) {
+        this.updateContainer();
+      }
+    });
+  }
+
+  // #dispatchUpdateMapPosition
   dispatchUpdateMapPosition({ velocity }) {
     const { keysPressed: { activeKeys }, gameMap, dispatch } = this.props;
     const { left, right, up, down } = allowedKeys;
@@ -549,10 +595,6 @@ class OverworldContainer extends Component {
     if (activeKeys[down]) {
       dispatch(updateMapY(gameMap.y -= velocity));
     }
-
-    // #wat what... WAT?!??!?!
-    // #updatecanvas
-    this.updateCanvas();
   }
 
 
@@ -594,18 +636,22 @@ class OverworldContainer extends Component {
     dispatch(clearActiveKeys());
   }
 
-
+  // #render
   render() {
     const { gameMap } = this.props;
     const mapPosition = {
-      // #here move default styles to stylesheet
       background: '#ccc',
       // backgroundPosition: `${gameMap.x}px ${gameMap.y}px`,
       left: `${gameMap.x}px`,
       top: `${gameMap.y}px`,
     };
 
-    const { height, width, verticalHalf, horizontalHalf } = this.state.playerContainerData;
+    const playerStyles = {
+      height: `${playerSize}px`,
+      width: `${playerSize}px`,
+      left: `calc(50% - ${halfPlayerSize}px)`,
+      top: `calc(50% - ${halfPlayerSize}px)`,
+    };
 
     const { cameraWidth, cameraHeight, halfCameraWidth, halfCameraHeight } = this.state.cameraContainerData;
 
@@ -614,13 +660,6 @@ class OverworldContainer extends Component {
       width: `${cameraWidth}px`,
       left: `calc(50% - ${halfCameraWidth}px)`,
       top: `calc(50% - ${halfCameraHeight}px)`,
-    };
-
-    const playerStyles = {
-      height: `${height}px`,
-      width: `${width}px`,
-      left: `calc(50% - ${horizontalHalf}px)`,
-      top: `calc(50% - ${verticalHalf}px)`,
     };
 
     const spatialFieldStyles = {
@@ -632,8 +671,9 @@ class OverworldContainer extends Component {
 
     return (
       <div>
-        <button onClick={this.stopAnimationFrame}>Stop Animation Frames</button>
-        <button onClick={this.toggleWallHighlights}>TOGGLE WALL HIGHLIGHTS</button>
+        <button style={{ background: '#fff' }} onClick={this.stopAnimationFrame}>Stop Animation Frames</button>
+        <button style={{ background: '#fff' }} onClick={this.toggleWallHighlights}>TOGGLE WALL HIGHLIGHTS</button>
+        <h3 style={{ color: '#ff0' }}>AFID: {this.state.animationFramesId}</h3>
         <div
           tabIndex="0"
           role="presentation"
