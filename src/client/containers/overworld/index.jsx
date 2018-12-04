@@ -192,24 +192,8 @@ class OverworldContainer extends Component {
 
   // #updatecontainer #gameloop
   updateContainer() {
-    const drawPromise = () => (
-      new Promise((resolve) => {
-        this.updatePlayerPosition();
-        this.updateCanvasContext();
-
-        // setTimeout(() => { resolve(); }, 100);
-        resolve();
-      })
-    );
-
-    drawPromise().then(() => {
-      this.dispatchUpdateMapPosition({ velocity });
-    });
-    // this.moveMap();
-
-    // this.dispatchUpdateMapPosition({ velocity });
-    // this.updatePlayerPosition();
-    // this.updateCanvasContext();
+    this.dispatchUpdateMapPosition();
+    this.updateCanvasContext();
   }
 
   initializeMap() {
@@ -219,7 +203,7 @@ class OverworldContainer extends Component {
     // const wallsArray = findAllWalls(mapArray);
     // const wallsObject = buildWallObject(wallsArray);
 
-    this.setState({ mapImage: createImage(spriteMapSource) })
+    this.setState({ mapImage: createImage(spriteMapSource) });
 
     dispatch(updateCellSize(cellSize)); // #here - temporary constant
     // #dispatchmaparraydispatch
@@ -237,8 +221,9 @@ class OverworldContainer extends Component {
   }
 
   initializePlayerSprite() {
-    this.setState({ playerSpriteSheet: createImage(playerSprite) });
-    // this.updatePlayerPosition();
+    this.setState({ playerSpriteSheet: createImage(playerSprite) }, () => {
+      this.initializePlayerPosition();
+    });
   }
 
   drawMapInCanvas() {
@@ -355,11 +340,7 @@ class OverworldContainer extends Component {
     }
   }
 
-  // #koko #updateplayerposition #canvas
-  // #koko-here - change this to make player position independent from player camera
-  // only initial position can be dependent on camera
-  updatePlayerPosition = () => {
-    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+  initializePlayerPosition = () => {
     const map = document.getElementById('overworldCanvas');
     const { offsetLeft: mapOffsetLeft, offsetTop: mapOffsetTop } = map;
 
@@ -371,46 +352,75 @@ class OverworldContainer extends Component {
     const rectY = mapOffsetTop <= 0 ?
       Math.abs(mapOffsetTop) + pcOffsetTop : pcOffsetTop - map.offsetTop;
 
+    const { playerHitbox, playerCoordinates } = this.playerPositionObject({ rectX, rectY });
+
+    this.props.dispatch(updateGameMap({
+      playerCoordinates,
+      playerHitbox,
+    }));
+  }
+
+  playerPositionObject = ({ rectX, rectY }) => {
     const pcCenterX = rectX - halfPlayerSize; // column
     const pcCenterY = rectY + halfPlayerSize; // row
     const pcRow = transformToCoordinate({ cellSize, position: pcCenterY });
     const pcCol = transformToCoordinate({ cellSize, position: pcCenterX });
 
-    const playerHitbox = {
-      left: rectX,
-      right: rectX + playerSize,
-      top: rectY,
-      bottom: rectY + playerSize,
+    return {
+      playerHitbox: {
+        left: rectX,
+        right: rectX + playerSize,
+        top: rectY,
+        bottom: rectY + playerSize,
+      },
+      playerCoordinates: {
+        tlX: rectX,
+        tlY: rectY,
+        centerX: pcCenterX,
+        centerY: pcCenterY,
+        row: pcRow,
+        col: pcCol,
+      },
     };
+  }
 
-    const playerCoordinates = {
-      tlX: rectX,
-      tlY: rectY,
-      centerX: pcCenterX,
-      centerY: pcCenterY,
-      row: pcRow,
-      col: pcCol,
-    };
+  // #koko #updateplayerposition #canvas
+  // #koko-here - change this to make player position independent from player camera
+  // only initial position can be dependent on camera
+  updatePlayerPosition = (direction) => {
+    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+    let rectX;
+    let rectY;
 
-    // const drawPlayerParams = {
-    //   ctx,
-    //   playerSize,
-    //   playerSpriteSheet,
-    //   tlX: rectX,
-    //   tlY: rectY,
-    // };
-
-    // this.drawPlayer({
-    //   tlXParam: rectX,
-    //   tlYParam: rectY,
-    // });
-
-    if (rectY !== tlY || rectX !== tlX) {
-      this.props.dispatch(updateGameMap({
-        playerCoordinates,
-        playerHitbox,
-      }));
+    switch (direction) {
+      case 'up': {
+        rectX = tlX;
+        rectY = tlY - velocity;
+        break;
+      }
+      case 'right': {
+        rectX = tlX + velocity;
+        rectY = tlY;
+        break;
+      }
+      case 'down': {
+        rectX = tlX;
+        rectY = tlY + velocity;
+        break;
+      }
+      default: {
+        rectX = tlX - velocity;
+        rectY = tlY;
+        break;
+      }
     }
+
+    const { playerHitbox, playerCoordinates } = this.playerPositionObject({ rectX, rectY });
+
+    this.props.dispatch(updateGameMap({
+      playerCoordinates,
+      playerHitbox,
+    }));
   };
 
   // #drawplayer
@@ -418,13 +428,10 @@ class OverworldContainer extends Component {
   drawPlayer = () => { // = ({ tlXParam, tlYParam }) => {
     const { ctx, playerSpriteSheet } = this.state;
     const { tlX, tlY } = this.props.gameMap.playerCoordinates;
-    ctx.restore();
     // temporary fill for testing
     ctx.fillStyle = '#ff0';
     ctx.fillRect(tlX, tlY, playerSize, playerSize);
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, tlX, tlY, playerSize, playerSize);
-
-    ctx.save();
   };
   // /#koko
 
@@ -576,24 +583,28 @@ class OverworldContainer extends Component {
   }
 
   // #dispatchUpdateMapPosition
-  dispatchUpdateMapPosition({ velocity }) {
+  dispatchUpdateMapPosition() {
     const { keysPressed: { activeKeys }, gameMap, dispatch } = this.props;
     const { left, right, up, down } = allowedKeys;
 
     if (activeKeys[left]) {
       dispatch(updateMapX(gameMap.x += velocity));
+      this.updatePlayerPosition('left');
     }
 
     if (activeKeys[right]) {
       dispatch(updateMapX(gameMap.x -= velocity));
+      this.updatePlayerPosition('right');
     }
 
     if (activeKeys[up]) {
       dispatch(updateMapY(gameMap.y += velocity));
+      this.updatePlayerPosition('up');
     }
 
     if (activeKeys[down]) {
       dispatch(updateMapY(gameMap.y -= velocity));
+      this.updatePlayerPosition('down');
     }
   }
 
