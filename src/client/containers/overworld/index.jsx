@@ -59,30 +59,6 @@ const highlightWalls = (ctx) => {
     });
   });
 };
-
-// #collision
-// initial idea:
-// if nearbyWalls has contents, iterate through the array
-  // lookup keys in wallsObject
-    // calculate all top, right, left, and bottom pixel coordinates for each wall cell
-    // create a min/max range for each side
-      // (optimization opportunity for cell borders with same coordinates)
-  // store min/max ranges for each side in state
-
-// on collide
-  // get 8-dir "border" coordinates from player center
-  // if any of the x coordinates equal (or less that 1px difference???) the x coordinates in stored range, set "movement allowed" state to false
-  // if any of the y coordinates equal (or less that 1px difference???) the x coordinates in stored range, set "movement allowed" state to false
-// const collisionDetection = (nearbyWalls) => {
-//   if (!nearbyWalls.length) return null;
-//
-//   // nearbyWalls.forEach((wallCoord) => {
-//   //   wallsObject[wallCoord]
-//   // })
-//   return 'something...'
-// };
-
-
 // =====================================================
 
 class OverworldContainer extends Component {
@@ -220,6 +196,7 @@ class OverworldContainer extends Component {
     this.setSpatialBoxData();
   }
 
+  // #initialize player collision detection here as well
   initializePlayerSprite() {
     this.setState({ playerSpriteSheet: createImage(playerSprite) }, () => {
       this.initializePlayerPosition();
@@ -257,50 +234,7 @@ class OverworldContainer extends Component {
 
   // #updatecanvas-wip-old-has-spatial-field
   updateCanvas() {
-  //   const { ctx, playerSpriteSheet } = this.state;
-  // -
-  //   // player on canvas
-  //   // move logic to own function!!!
-  //   // this function should only care about updating the canvas states
-  //   const { tlX, tlY } = this.props.gameMap.playerCoordinates;
-  //   const map = document.getElementById('overworldCanvas');
-  //   const pc = document.getElementById('playerKarakter');
-  // -
-  //   const halfPlayerSize = playerSize / 2;
-  //   const mapOffsetLeft = map.offsetLeft;
-  //   const mapOffsetTop = map.offsetTop;
-  //   const rectX = mapOffsetLeft <= 0 ?
-  //     Math.abs(mapOffsetLeft) + pc.offsetLeft :
-  //     pc.offsetLeft - map.offsetLeft;
-  //   const rectY = mapOffsetTop <= 0 ?
-  //     Math.abs(mapOffsetTop) + pc.offsetTop :
-  //     pc.offsetTop - map.offsetTop;
-  //   const centerX = rectX + halfPlayerSize; // column
-  //   const centerY = rectY + halfPlayerSize; // row
-  //   const pRow = transformToCoordinate({ cellSize, position: centerY }); // y-coord
-  //   const pCol = transformToCoordinate({ cellSize, position: centerX }); // x-coord
-  // -
-  //   // #here calculation seems to work... it's just a matter of when this gets assigned
-  //   // playerrhitbox #hitboxboundaries #boundaries
-  //   const playerHitbox = {
-  //     left: tlX,
-  //     right: tlX + playerSize,
-  //     top: tlY,
-  //     bottom: tlY + playerSize,
-  //   };
-  // -
-  //   const playerCoordinates = {
-  //     tlX: rectX,
-  //     tlY: rectY,
-  //     centerX,
-  //     centerY,
-  //     row: pRow, // calculated from center of character square
-  //     col: pCol, // calculated from center of character square
-  //     playerSize,
-  //     halfPlayerSize,
-  //   }
-
-    this.drawMapInCanvas();
+    // this.drawMapInCanvas();
 
     // #spatial detection area #hurr
     // initial idea - 8 directions represented as blocks forming a 3x3 square around player
@@ -361,7 +295,7 @@ class OverworldContainer extends Component {
   }
 
   playerPositionObject = ({ rectX, rectY }) => {
-    const pcCenterX = rectX - halfPlayerSize; // column
+    const pcCenterX = rectX + halfPlayerSize; // column
     const pcCenterY = rectY + halfPlayerSize; // row
     const pcRow = transformToCoordinate({ cellSize, position: pcCenterY });
     const pcCol = transformToCoordinate({ cellSize, position: pcCenterX });
@@ -385,12 +319,11 @@ class OverworldContainer extends Component {
   }
 
   // #koko #updateplayerposition #canvas
-  // #koko-here - change this to make player position independent from player camera
-  // only initial position can be dependent on camera
   updatePlayerPosition = (direction) => {
-    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
     let rectX;
     let rectY;
+    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+    const { walls } = this.props.gameMap;
 
     switch (direction) {
       case 'up': {
@@ -416,10 +349,16 @@ class OverworldContainer extends Component {
     }
 
     const { playerHitbox, playerCoordinates } = this.playerPositionObject({ rectX, rectY });
+    const { row, col } = playerCoordinates;
+    const nearbyWalls = this.playerCollisionDetectionCoords({ row, col })
+      .filter(coord => (walls.hasOwnProperty(coord)));
+    console.log('THE walls: ', this.props.gameMap.walls);
+    console.log('nearby walls: ', nearbyWalls);
 
     this.props.dispatch(updateGameMap({
       playerCoordinates,
       playerHitbox,
+      nearbyWalls,
     }));
   };
 
@@ -433,6 +372,23 @@ class OverworldContainer extends Component {
     ctx.fillRect(tlX, tlY, playerSize, playerSize);
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, tlX, tlY, playerSize, playerSize);
   };
+
+  playerCollisionDetectionCoords = ({ row, col }) => (
+    [
+      `${col}_${row - 1}`, // top
+      `${col + 1}_${row - 1}`, // top-right
+      `${col + 1}_${row}`, // right
+      `${col + 1}_${row + 1}`, // bottom-right
+      `${col}_${row + 1}`, // bottom
+      `${col - 1}_${row + 1}`, // bottom-left
+      `${col - 1}_${row}`, // left
+      `${col - 1}_${row - 1}`, // top-left
+    ]
+  )
+
+  // wallCollisionDetection = () = {
+    // #koko-here THIS IS WHERE YOU STOPPED
+  // }
   // /#koko
 
   // #move #handlemove #collision-wrapper
@@ -568,7 +524,7 @@ class OverworldContainer extends Component {
 
 
     // #here hmm..?
-    // call this.handleMovement here?
+    // call this.handleMovement/collision here?
     dispatch(() => (
       new Promise((resolve) => {
         // debugger
