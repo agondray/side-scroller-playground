@@ -11,6 +11,8 @@ const Canvas = ({
   onKeyDown,
   onKeyUp,
   onClick,
+  onMouseDown,
+  onMouseUp,
   onMouseMove,
   onMouseOver,
 }) => (
@@ -23,6 +25,8 @@ const Canvas = ({
     onKeyDown={onKeyDown}
     onKeyUp={onKeyUp}
     onClick={onClick}
+    onMouseDown={onMouseDown}
+    onMouseUp={onMouseUp}
     onMouseMove={onMouseMove}
     onMouseOver={onMouseOver}
   />
@@ -34,6 +38,8 @@ Canvas.propTypes = {
   onKeyDown: PropTypes.func,
   onKeyUp: PropTypes.func,
   onClick: PropTypes.func,
+  onMouseDown: PropTypes.func,
+  onMouseUp: PropTypes.func,
   onMouseMove: PropTypes.func,
   onMouseOver: PropTypes.func,
   canvasRef: PropTypes.func.isRequired,
@@ -47,6 +53,8 @@ Canvas.defaultProps = {
   onKeyDown: () => (null),
   onKeyUp: () => (null),
   onClick: () => (null),
+  onMouseDown: () => (null),
+  onMouseUp: () => (null),
   onMouseMove: () => (null),
   onMouseOver: () => (null),
 };

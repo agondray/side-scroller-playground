@@ -43,9 +43,10 @@ class MapBuilder extends Component {
       imageBlob: '',
       imageName: '',
       saving: false,
+      mouseHeldDown: false,
     };
 
-    this.handleCanvasClick = this.handleCanvasClick.bind(this);
+    this.paintCanvas = this.paintCanvas.bind(this);
     this.initializeTool = this.initializeTool.bind(this);
     this.handleCanvasHover = this.handleCanvasHover.bind(this);
     this.update = this.update.bind(this);
@@ -145,7 +146,7 @@ class MapBuilder extends Component {
     this.update();
   }
 
-  handleCanvasClick() {
+  paintCanvas() {
     const {
       hx,
       hy,
@@ -191,12 +192,12 @@ class MapBuilder extends Component {
       this.asyncUpdateGridObject({ cellKey, selectedCellType: cellTypes.wall });
     }
 
-    return null;
+    this.update();
   }
 
   handleCanvasHover(e) {
     const { tileSize } = tileSpecs;
-    const { dispatch } = this.props;
+    const { dispatch, gridObject, selectedTile } = this.props;
     const { context, cellHoverColor } = this.state;
 
     const rect = this.canvas.getBoundingClientRect();
@@ -208,11 +209,20 @@ class MapBuilder extends Component {
     const hx = Math.floor(cx / tileSize) * tileSize;
     const hy = Math.floor(cy / tileSize) * tileSize;
     const { hx: prevHx, hy: prevHy } = this.props;
+    const { tileData: hoveredCellTileData } = gridObject[`${hx}_${hy}`];
 
     if (hx !== prevHx || hy !== prevHy) {
       dispatch(updateHoveredCell({ x: hx, y: hy }));
       this.update();
       highlightCell({ context, tileSize, hx, hy, cellHighlightColor: cellHoverColor });
+    }
+
+    const tileCodesMatch = !!hoveredCellTileData && Object.keys(hoveredCellTileData)
+      .find(({ tileCode }) => (tileCode === selectedTile.tileCode));
+
+    if (this.state.mouseHeldDown && !tileCodesMatch) {
+      console.log('painting...');
+      this.paintCanvas();
     }
   }
 
@@ -236,6 +246,18 @@ class MapBuilder extends Component {
     });
   }
 
+  handleMouseDown = () => {
+    console.log('holding down mouse...');
+
+    this.setState({ mouseHeldDown: true }, () => { this.paintCanvas() })
+  }
+
+  handleMouseUp = () => {
+    console.log('releasing mouse');
+
+    this.setState({ mouseHeldDown: false });
+  }
+
   render() {
     const {
       canvasWidth,
@@ -248,7 +270,7 @@ class MapBuilder extends Component {
 
     return (
       <div className={styles.container}>
-        <h1 className={styles.heading}>Your window to a new world...</h1>
+        <h1 className={styles.heading}>2D Map Builder Via Canvas</h1>
         {inMapMode ? <MapLegend /> : null }
         <div className={styles.buttonsContainer}>
           <button
@@ -268,7 +290,8 @@ class MapBuilder extends Component {
           canvasRef={(c) => { this.canvas = c; }}
           height={canvasWidth}
           width={canvasHeight}
-          onClick={this.handleCanvasClick}
+          onMouseDown={this.handleMouseDown}
+          onMouseUp={this.handleMouseUp}
           onMouseMove={this.handleCanvasHover}
         />
         { saving ?
