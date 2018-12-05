@@ -247,14 +247,10 @@ class MapBuilder extends Component {
   }
 
   handleMouseDown = () => {
-    console.log('holding down mouse...');
-
     this.setState({ mouseHeldDown: true }, () => { this.paintCanvas() })
   }
 
   handleMouseUp = () => {
-    console.log('releasing mouse');
-
     this.setState({ mouseHeldDown: false });
   }
 
@@ -300,6 +296,7 @@ class MapBuilder extends Component {
             handleConfirmClick={this.handleModalClose}
             imageBlob={imageBlob}
             imageName={imageName}
+            gridObject={this.props.gridObject}
           /> :
           null }
       </div>
