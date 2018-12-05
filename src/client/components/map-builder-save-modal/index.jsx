@@ -8,9 +8,14 @@ const MapBuilderSaveModal = ({
   handleConfirmClick,
   imageBlob,
   imageName,
+  gridObject,
 }) => {
   const onInputChange = (e) => {
     handleInputChange(e.target.value);
+  };
+
+  const handleDownloadClick = () => {
+    document.getElementById('downloadable-grid-object').click();
   };
 
   return (
@@ -26,9 +31,11 @@ const MapBuilderSaveModal = ({
         />
         <div className={styles.buttonsBox}>
           <a
+            id="downloadable-map-image"
             href={imageBlob}
             download={imageName}
             title={imageName}
+            onClick={handleDownloadClick}
           >
             <button
               className={styles.downloadButton}
@@ -53,6 +60,12 @@ const MapBuilderSaveModal = ({
           height="500"
         />
       </div>
+      <a
+        id="downloadable-grid-object"
+        href={`data:text/json;charset=utf-8,${JSON.stringify(gridObject)}`}
+        style={{ display: 'none' }}
+        download={`${imageName || gridObject}.json`}
+      />
     </div>
   );
 };
@@ -62,6 +75,7 @@ MapBuilderSaveModal.propTypes = {
   handleConfirmClick: PropTypes.func.isRequired,
   imageBlob: PropTypes.string.isRequired,
   imageName: PropTypes.string.isRequired,
+  gridObject: PropTypes.shape().isRequired,
 };
 
 export default MapBuilderSaveModal;
