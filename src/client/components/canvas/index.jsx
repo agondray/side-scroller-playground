@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import cx from 'classnames';
 
 import styles from './canvas.scss';
 
 const Canvas = ({
   canvasStyle,
+  overrideStyles,
   canvasRef,
   width,
   height,
@@ -18,7 +20,7 @@ const Canvas = ({
 }) => (
   <canvas
     id="overworldCanvas"
-    className={styles.canvas}
+    className={cx(styles.canvas, overrideStyles)}
     style={canvasStyle}
     ref={canvasRef}
     height={height}
@@ -36,6 +38,7 @@ const Canvas = ({
 Canvas.propTypes = {
   canvasRef: PropTypes.func.isRequired,
   canvasStyle: PropTypes.shape(),
+  overrideStyles: PropTypes.string,
   height: PropTypes.number,
   onKeyDown: PropTypes.func,
   onKeyUp: PropTypes.func,
@@ -49,6 +52,7 @@ Canvas.propTypes = {
 
 Canvas.defaultProps = {
   canvasStyle: { background: '#ccc' },
+  overrideStyles: '',
   width: 1000,
   height: 1000,
   onKeyDown: () => (null),

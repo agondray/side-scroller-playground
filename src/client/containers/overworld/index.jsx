@@ -352,7 +352,7 @@ class OverworldContainer extends Component {
     const { row, col } = playerCoordinates;
     const nearbyWalls = this.playerCollisionDetectionCoords({ row, col })
       .filter(coord => (walls.hasOwnProperty(coord)));
-    console.log('THE walls: ', this.props.gameMap.walls);
+    // console.log('THE walls: ', this.props.gameMap.walls);
     console.log('nearby walls: ', nearbyWalls);
 
     this.props.dispatch(updateGameMap({
@@ -504,7 +504,7 @@ class OverworldContainer extends Component {
     dispatch(updateGameMap({
       playerHitboxCollidingSides: bumpedWalls.length ? bumpedWalls[0].playerHitboxCollidingSides : [],
     }));
-    this.dispatchUpdateMapPosition({ velocity });
+    this.dispatchUpdateMapPosition();
   }
 
   // #keypress #press #keydown #keyup
@@ -597,7 +597,7 @@ class OverworldContainer extends Component {
   }
 
   handleContainerBlur = () => {
-    console.log('bllurring div');
+    // console.log('bllurring div');
 
     const { dispatch } = this.props;
     dispatch(clearActiveKeys());
@@ -608,7 +608,7 @@ class OverworldContainer extends Component {
     const { gameMap } = this.props;
     const mapPosition = {
       background: '#ccc',
-      // backgroundPosition: `${gameMap.x}px ${gameMap.y}px`,
+      backgroundPosition: `${gameMap.x}px ${gameMap.y}px`,
       left: `${gameMap.x}px`,
       top: `${gameMap.y}px`,
     };
