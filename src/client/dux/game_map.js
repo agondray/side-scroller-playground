@@ -30,7 +30,7 @@ const initialState = {
     // halfPlayerSize: null,
   },
   playerHitbox: {}, // possibly have a separate store for hitboxes and collisions???
-  playerHitboxCollidingSides: [], // hmm...
+  playerCollidingSides: [], // hmm...
 };
 
 export default function gameMapReducer(state = initialState, action = {}) {

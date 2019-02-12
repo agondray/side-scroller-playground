@@ -170,6 +170,7 @@ class OverworldContainer extends Component {
   updateContainer() {
     this.dispatchUpdateMapPosition();
     this.updateCanvasContext();
+    this.handleBump();
   }
 
   initializeMap() {
@@ -320,46 +321,67 @@ class OverworldContainer extends Component {
 
   // #koko #updateplayerposition #canvas
   updatePlayerPosition = (direction) => {
+    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
+    const { walls, playerCollidingSides } = this.props.gameMap;
+    // #shimata
     let rectX;
     let rectY;
-    const { tlX, tlY } = this.props.gameMap.playerCoordinates;
-    const { walls } = this.props.gameMap;
+    let inputDir;
 
     switch (direction) {
       case 'up': {
-        rectX = tlX;
-        rectY = tlY - velocity;
-        break;
-      }
-      case 'right': {
-        rectX = tlX + velocity;
-        rectY = tlY;
+        inputDir = 'top';
         break;
       }
       case 'down': {
-        rectX = tlX;
-        rectY = tlY + velocity;
+        inputDir = 'bottom';
         break;
       }
       default: {
-        rectX = tlX - velocity;
-        rectY = tlY;
+        inputDir = direction;
         break;
       }
     }
 
-    const { playerHitbox, playerCoordinates } = this.playerPositionObject({ rectX, rectY });
-    const { row, col } = playerCoordinates;
-    const nearbyWalls = this.playerCollisionDetectionCoords({ row, col })
-      .filter(coord => (walls.hasOwnProperty(coord)));
-    // console.log('THE walls: ', this.props.gameMap.walls);
-    console.log('nearby walls: ', nearbyWalls);
+    if (!playerCollidingSides.includes(inputDir)) {
+      switch (direction) {
+        case 'up': {
+          rectX = tlX;
+          rectY = tlY - velocity;
+          break;
+        }
+        case 'right': {
+          rectX = tlX + velocity;
+          rectY = tlY;
+          break;
+        }
+        case 'down': {
+          rectX = tlX;
+          rectY = tlY + velocity;
+          break;
+        }
+        default: {
+          rectX = tlX - velocity;
+          rectY = tlY;
+          break;
+        }
+      }
 
-    this.props.dispatch(updateGameMap({
-      playerCoordinates,
-      playerHitbox,
-      nearbyWalls,
-    }));
+      const { playerHitbox, playerCoordinates } = this.playerPositionObject({ rectX, rectY });
+      const { row, col } = playerCoordinates;
+      // #nearbywallscoords
+      const nearbyWalls = this.nearbyWallsCoords({ row, col })
+        .filter(coord => (walls.hasOwnProperty(coord)));
+      // console.log('THE walls: ', this.props.gameMap.walls);
+      console.log('nearby walls: ', nearbyWalls);
+
+      this.props.dispatch(updateGameMap({
+        playerCoordinates,
+        playerHitbox,
+        nearbyWalls,
+        playerCollidingSides: [],
+      }));
+    }
   };
 
   // #drawplayer
@@ -373,7 +395,7 @@ class OverworldContainer extends Component {
     ctx.drawImage(playerSpriteSheet, 216, 0, 72, 72, tlX, tlY, playerSize, playerSize);
   };
 
-  playerCollisionDetectionCoords = ({ row, col }) => (
+  nearbyWallsCoords = ({ row, col }) => (
     [
       `${col}_${row - 1}`, // top
       `${col + 1}_${row - 1}`, // top-right
@@ -386,13 +408,8 @@ class OverworldContainer extends Component {
     ]
   )
 
-  // wallCollisionDetection = () = {
-    // #koko-here THIS IS WHERE YOU STOPPED
-  // }
-  // /#koko
-
-  // #move #handlemove #collision-wrapper
-  handleMovement = () => {
+  // #move #handleBump #collision-wrapper
+  handleBump = () => {
     const {
       keysPressed: { activeKeys },
       gameMap: {
@@ -438,48 +455,21 @@ class OverworldContainer extends Component {
           const pRightCollision = Math.abs(pRight - wall.x)
           const pTopCollision = Math.abs(pTop - (wall.y + cellSize))
           const pBottomCollision = Math.abs(pBottom - wall.y)
+          let bumpedSide;
 
-          const playerHitboxCollidingSides = Object.keys(playerHitbox).filter((hitboxSide) => {
-            // hmmm... can still improve/change this switch statement
-            switch (hitboxSide) {
-              case 'left': {
-                if (pLeftCollision <= collisionThreshold) {
-                  return hitboxSide;
-                }
-                return;
-              }
-              case 'right': {
-                if (pRightCollision <= collisionThreshold) {
-                  return hitboxSide;
-                }
-                return;
-              }
-              case 'top': {
-                if (pTopCollision <= collisionThreshold) {
-                  return hitboxSide;
-                }
-                return;
-              }
-              default: {
-                if (pBottomCollision <= collisionThreshold) {
-                  return hitboxSide;
-                }
-                return;
-              }
-            }
-          })
+          if (pLeftCollision <= collisionThreshold) {
+            bumpedSide = 'left';
+          } else if (pRightCollision <= collisionThreshold) {
+            bumpedSide = 'right';
+          } else if (pTopCollision <= collisionThreshold) {
+            bumpedSide = 'top';
+          } else if (pBottomCollision <= collisionThreshold) {
+            bumpedSide = 'bottom';
+          }
 
-          accum.push({
-            wallCoord,
-            playerHitboxCollidingSides,
-            // temporary -- can delete if not needed:
-            pLeftCollision,
-            pRightCollision,
-            pTopCollision,
-            pBottomCollision,
-          });
-
-          return accum;
+          if (bumpedSide) {
+            accum.push(bumpedSide);
+          }
         }
 
         return accum;
@@ -487,24 +477,13 @@ class OverworldContainer extends Component {
     };
 
     const bumpedWalls = detectWallCollision();
-
-
-
+    // #boom
     if (bumpedWalls.length > 0) {
       console.log('collision detected!!! BOOM ~ ~  ~ ~ ~ ~ ~');
+      console.log('bumped walls...: ', bumpedWalls);
 
-      // #updatecanvas
-      // this.updateCanvas();
-      // update map and player position
+      dispatch(updateGameMap({ playerCollidingSides: bumpedWalls }));
     }
-
-    console.log('bumped walls...: ', bumpedWalls);
-
-    // #movedispatchd
-    dispatch(updateGameMap({
-      playerHitboxCollidingSides: bumpedWalls.length ? bumpedWalls[0].playerHitboxCollidingSides : [],
-    }));
-    this.dispatchUpdateMapPosition();
   }
 
   // #keypress #press #keydown #keyup
@@ -524,7 +503,7 @@ class OverworldContainer extends Component {
 
 
     // #here hmm..?
-    // call this.handleMovement/collision here?
+    // call this.handleBump/collision here?
     dispatch(() => (
       new Promise((resolve) => {
         // debugger
@@ -543,22 +522,22 @@ class OverworldContainer extends Component {
     const { keysPressed: { activeKeys }, gameMap, dispatch } = this.props;
     const { left, right, up, down } = allowedKeys;
 
-    if (activeKeys[left]) {
+    if (activeKeys[left] && !gameMap.playerCollidingSides.includes('left')) {
       dispatch(updateMapX(gameMap.x += velocity));
       this.updatePlayerPosition('left');
     }
 
-    if (activeKeys[right]) {
+    if (activeKeys[right] && !gameMap.playerCollidingSides.includes('right')) {
       dispatch(updateMapX(gameMap.x -= velocity));
       this.updatePlayerPosition('right');
     }
 
-    if (activeKeys[up]) {
+    if (activeKeys[up] && !gameMap.playerCollidingSides.includes('top')) {
       dispatch(updateMapY(gameMap.y += velocity));
       this.updatePlayerPosition('up');
     }
 
-    if (activeKeys[down]) {
+    if (activeKeys[down] && !gameMap.playerCollidingSides.includes('bottom')) {
       dispatch(updateMapY(gameMap.y -= velocity));
       this.updatePlayerPosition('down');
     }
