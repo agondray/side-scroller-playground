@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "git@github.com:jvestolas/side-scroller-playground.git",
   "scripts": {
-    "start": "node_modules/.bin/webpack-dev-server --port 1337 --config ./webpack/config.js --env development",
+    "start": "node_modules/.bin/webpack-dev-server --port 1337 --config ./webpack/config.js --env development --quiet --no-info",
     "storybook": "start-storybook -p 9001 -c .storybook",
     "build": "rm -rf build && rm -rf dist && webpack --config webpack/config.js --env development",
     "clean": "rm -rf build && rm -rf dist"
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@storybook/react": "^3.3.12",
     "babel-core": "^6.22.1",
+    "babel-eslint": "8",
     "babel-plugin-react-transform": "^2.0.2",
     "babel-plugin-transform-object-rest-spread": "https://registry.npmjs.org/babel-plugin-transform-object-rest-spread/-/babel-plugin-transform-object-rest-spread-6.23.0.tgz",
     "babel-plugin-transform-runtime": "^6.22.0",
@@ -58,7 +59,7 @@
     "postcss-loader": "^2.1.4",
     "progress-bar-webpack-plugin": "^1.9.3",
     "prop-types": "^15.6.0",
-    "react": "^15.6.1",
+    "react": "15.6.1",
     "react-dom": "^15.4.2",
     "react-loader": "^2.4.0",
     "react-redux": "^5.0.3",

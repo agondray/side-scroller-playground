@@ -4,15 +4,11 @@ import PropTypes from 'prop-types';
 
 import PlayerCharacter from '@entities/player_character';
 import Overworld from '@engines/overworld';
-import { addActiveKey, removeActiveKey } from '@dux/player_character';
-import { updateGameMap } from '@dux/game_map';
+import { updateActiveKeys } from '@dux/player_character';
 import { allowedKeys } from '@utils/key_codes';
 import { assignKey, removeKey } from '@utils/keypress_handlers';
 import { createImage } from '@utils/image_helpers';
-import { generateArrayFromMapObject } from '@utils/game_map_helpers';
 import styles from './stage.scss';
-// #here - SAMPLE! Remove this when done with POC!
-import { sampleMap_1 } from '@utils/sample_map_data/sample_map_1';
 
 const terrainSpriteSheet = require('@images/terrain.png');
 const playerSprite = require('@images/swordsman.png');
@@ -48,7 +44,6 @@ class Stage extends Component {
     this.handleAnimationFrameStop = this.handleAnimationFrameStop.bind(this);
     this.kickoffAnimationFrames = this.kickoffAnimationFrames.bind(this);
     this.initializeOverwolrd = this.initializeOverwolrd.bind(this);
-    this.updateMapGridWithSampleMap = this.updateMapGridWithSampleMap.bind(this);
   }
 
   componentDidMount() {
@@ -71,17 +66,7 @@ class Stage extends Component {
       this.initializeContextValues();
       this.initializePlayerCharacter();
       this.initializeOverwolrd();
-      this.updateMapGridWithSampleMap();
     });
-  }
-
-  updateMapGridWithSampleMap() {
-    const mapDataArray = generateArrayFromMapObject(sampleMap_1);
-
-    this.props.dispatch(updateGameMap({
-      gridObject: sampleMap_1,
-      gridArray: mapDataArray,
-    }));
   }
 
   kickoffAnimationFrames() {
@@ -124,6 +109,7 @@ class Stage extends Component {
   }
 
   update() {
+    console.log('running update...')
     const { context, player, overworld } = this.state;
 
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -165,7 +151,7 @@ class Stage extends Component {
     const { activeKeys, dispatch } = this.props;
     const activeKey = assignKey(activeKeys, keyCode);
 
-    dispatch(addActiveKey(activeKey));
+    dispatch(updateActiveKeys(activeKey));
   }
   //
   handleKeyUp(e) {
@@ -173,10 +159,11 @@ class Stage extends Component {
     const { activeKeys, dispatch } = this.props;
     const activeKey = removeKey(activeKeys, keyCode);
 
-    dispatch(removeActiveKey(activeKey));
+    dispatch(updateActiveKeys(activeKey));
   }
 
   handleAnimationFrameStop() {
+    console.log('STAGE DEBUG -- cancelling animation frame')
     cancelAnimationFrame(this.state.animation);
     this.setState({ animation: null, gameStarted: false });
   }

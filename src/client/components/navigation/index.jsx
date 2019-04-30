@@ -18,6 +18,12 @@ const Navigation = () => (
       >
         Map Builder
       </Link>
+      <Link
+        className={styles.navLink}
+        to="/overworld-movement"
+      >
+        Overworld Movement/Camera
+      </Link>
     </div>
   </div>
 );

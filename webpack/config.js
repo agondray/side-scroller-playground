@@ -66,8 +66,9 @@ module.exports = {
             {
               loader: 'postcss-loader',
               options: {
-                sourceMap: true,
                 config: { path: path.resolve(__dirname, './postcss.config.js') },
+                sourceMap: true,
+                publicPath: '../build',
               },
             },
             {
@@ -84,8 +85,7 @@ module.exports = {
         use: {
           loader: 'url-loader',
           options: {
-            limit: 1000000,
-            name: 'images/[name].[ext]',
+            name: '[path][name].[hash].[ext]',
           },
         },
       },

@@ -1,5 +1,7 @@
 # RPG Playground
- ~ The repository name is wrong -- will fix! This is a work in progress! ~
+* This project is a work in progress!
+ ~ The repository name is wrong -- will fix! ~
+
 ## What is this?
 * It's an 2D role playing game builder, a playground of sorts, for game development on web browsers.
 * Built using React and Canvas
@@ -31,13 +33,18 @@
   * For now, you'll need to go into the redux devtools to get a copy of the grid object data which contains dimensions, coordinates, sprite, and tile data for the map.
 ### Temporary Stage
   * Almost-blank map where the player avatar can move
+### Player Camera and spatial wall detection test
+  * A page that renders the player camera over a canvas
+  * Spatial detection field (green border) is visible to test wall detection
+  * I'm currently working on this. This feature is not yet finished
 
 ## Future Features
 * Overworld engine
 * Player camera
 * Player movement engine
 * NPC movement engine
-* Player and NPC sprite animations
+* Spatial detection of walls and other objects
+* Player and NPC sprites and animations
 * Combat engine
 * Environment animations and effects
 * Physics engine (probably gonna use an existing library for this)

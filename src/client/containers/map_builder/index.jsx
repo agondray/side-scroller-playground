@@ -283,6 +283,7 @@ class MapBuilder extends Component {
           </button>
         </div>
         <Canvas
+          overrideStyles={styles.mapBuilderCanvasPosition}
           canvasRef={(c) => { this.canvas = c; }}
           height={canvasWidth}
           width={canvasHeight}

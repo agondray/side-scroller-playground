@@ -149,10 +149,22 @@ export const cellTypes = {
   },
 };
 
+export const gameMapSpecs = {
+  canvasWidth: 1152, // 96 * 12
+  canvasHeight: 1152,
+};
+
+export const mapBuilderSpecs = {
+  canvasWidth: 1152, // 96 * 12
+  canvasHeight: 1152,
+};
+
 export default {
   spriteData,
   tileSpecs,
   gridSpecs,
   gridColors,
   cellTypes,
+  gameMapSpecs,
+  mapBuilderSpecs,
 };

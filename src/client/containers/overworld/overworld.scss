@@ -1,0 +1,28 @@
+.sampleMap {
+  position: absolute;;
+  z-index: 0;
+}
+
+.mapBackground {
+  background: url('src/client/assets/images/sample_maps/sample_map_1.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 1152px;
+  width: 1152px;
+  z-index: 0;
+}
+
+.playerCharacter {
+  border: 1px solid #000;
+  margin: 0; // temp, tbd
+  position: absolute;
+  text-align: center; // temp, tbd
+  z-index: 100;
+}
+
+.spatialField {
+  border: 1px solid #0f0;
+  margin: 0;
+  position: absolute;
+  z-index: 100;
+}
