@@ -5,7 +5,7 @@
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var path = require('path');
 var qs = require('qs');
 var autoprefixer = require('autoprefixer');
@@ -19,7 +19,7 @@ var PORT = 1337;
 module.exports = {
   name: 'client',
   mode: 'development',
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'eval-source-map',
   entry: {
     main: ENTRY_PATH,
     vendor: ['react'],
@@ -27,60 +27,45 @@ module.exports = {
   output: {
     path: OUTPUT_PATH,
     publicPath: '/',
-    filename: '[name]__[hash].js',
-    chunkFilename: '[name]__[chunkhash].chunk.js',
-    libraryTarget: 'umd',
+    filename: '[name]__[fullhash].js',
+    //chunkFilename: '[name]__[chunkhash].chunk.js',
+    clean: true,
   },
   module: {
     rules: [
+			{
+				test: /\.(js|jsx)$/,
+				exclude: /node_modules/,
+				use: {
+					loader: 'babel-loader',
+					//options: {
+					//	presets: [
+					//		'@babel-preset-env',
+					//	],
+					//	plugins: [
+					//		'@babel/plugin-transform-object-rest-spread',
+					//	],
+					//},
+				},	
+			},
       {
         test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader',
-        }),
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
-        test: /\.scss$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: [
-            {
-              loader: 'css-loader',
-              options: {
-                modules: true,
-                import: true,
-                importLoaders: 1,
-                localIdentName: '[name]_[local]--[hash:base64:8]',
-                camelCase: true,
-                minimize: true,
-                sourceMap: true,
-                url: false,
-              },
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                config: { path: path.resolve(__dirname, './postcss.config.js') },
-                sourceMap: true,
-                publicPath: '../build',
-              },
-            },
-            {
-              loader: 'sass-loader',
-              options: {
-                sourceMap: true,
-              },
-            },
-          ],
-        }),
+        test: /\.s[ac]ss$/i,
+        use: [
+					"style-loader",
+	  			"css-loader",
+	  			"sass-loader",
+				], 
       },
       {
         test: /\.(jpg|png|svg)$/,
         use: {
           loader: 'url-loader',
           options: {
-            name: '[path][name].[hash].[ext]',
+            name: '[path][name].[fullhash].[ext]',
           },
         },
       },
@@ -98,44 +83,43 @@ module.exports = {
       '@devtools': path.resolve(__dirname, '../src/devtools'),
     },
     extensions: ['.js', '.jsx', '.scss'],
+		modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   devServer: {
     hot: true,
     port: PORT,
-    overlay: true,
     progress: true,
+    client: {
+      overlay: true,   
+    },
     historyApiFallback: true,
   },
   optimization: {
-    splitChunks: {
-      chunks: 'async',
-      minSize: 30000,
-      minChunks: 1,
-      maxAsyncRequests: 5,
-      maxInitialRequests: 3,
-      automaticNameDelimiter: '~',
-      name: true,
-      cacheGroups: {
-        vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10,
-        },
-        default: {
-          minChunks: 2,
-          priority: -20,
-          reuseExistingChunk: true,
-        },
-      },
-    },
+    moduleIds: 'named',
+    emitOnErrors: true,
+    //splitChunks: {
+    //  chunks: 'async',
+    //  minSize: 20000,
+    //  minChunks: 1,
+    //  maxAsyncRequests: 30,
+    //  maxInitialRequests: 5,
+    //  cacheGroups: {
+    //    vendors: {
+    //      test: /[\\/]node_modules[\\/]/,
+    //      priority: -10,
+    //    },
+    //    default: {
+    //      minChunks: 2,
+    //      priority: -20,
+    //      reuseExistingChunk: true,
+    //    },
+    //  },
+    //},
   },
   plugins: [
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NamedModulesPlugin(),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
     new ProgressBarPlugin({ clear: false }),
-    new ExtractTextPlugin({
-      filename: 'style__[hash].css',
+    new MiniCssExtractPlugin({
+      filename: 'style__[fullhash].css',
     }),
     new HtmlWebpackPlugin({
       filename: INDEX_NAME,
